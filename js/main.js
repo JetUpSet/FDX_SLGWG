@@ -1,34 +1,11 @@
+import {
+  DAY_COUNT, BAR_H, CH_PER_DAY, COLORS,
+  TRIP_TEMPLATES, CARRY_OVER_TEMPLATES, TRAINING_TEMPLATES,
+  RESERVE_TEMPLATES, VACATION_TEMPLATES,
+} from './config.js';
+
   // -------- Config --------
   let PILOT_COUNT = 20;
-  const DAY_COUNT = 31;
-  const BAR_H = 28;
-  const CH_PER_DAY = 6;
-
-  const COLORS = [
-    '#4f46e5', '#0891b2', '#059669', '#ca8a04',
-    '#ea580c', '#dc2626', '#db2777', '#7c3aed'
-  ];
-  const TRIP_TEMPLATES = [
-    { days: 1, color: '#0891b2' },
-    { days: 2, color: '#059669' },
-    { days: 3, color: '#4f46e5' },
-    { days: 4, color: '#7c3aed' },
-    { days: 5, color: '#ea580c' },
-  ];
-  const CARRY_OVER_TEMPLATES = [
-    { hoursPerDay: 6, color: '#64748b' },
-  ];
-  const TRAINING_TEMPLATES = [
-    { hoursPerDay: 4.5, color: '#b45309' },
-  ];
-  const RESERVE_TEMPLATES = [
-    { subType: 'RA',  label: 'RA reserve',  hoursPerDay: 4.75, color: '#0d9488' },
-    { subType: 'RB',  label: 'RB reserve',  hoursPerDay: 4.75, color: '#0e7490' },
-    { subType: 'R24', label: 'R24 reserve', hoursPerDay: 4.75, color: '#1e3a8a' },
-  ];
-  const VACATION_TEMPLATES = [
-    { days: 7, hoursPerDay: 6, color: '#7e22ce' },  // 7-day default, 6 CH/day
-  ];
 
   // Parse "H:MM" or decimal hours; returns Number or null
   function parseHpd(text) {
