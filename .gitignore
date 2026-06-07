@@ -1,3 +1,6 @@
 node_modules/
 test-results/
 playwright-report/
+
+# Claude Code / superpowers working notes — keep local, do not track
+docs/superpowers/
