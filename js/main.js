@@ -4,14 +4,10 @@ import {
   RESERVE_TEMPLATES, VACATION_TEMPLATES,
 } from './config.js';
 import { parseHpd, fmtCH, randInt } from './format.js';
-
-  // -------- Config --------
-  let PILOT_COUNT = 20;
-
-  // -------- State --------
-  let trips = [];
-  let nextId = 1;
-  let selectedId = null;
+import {
+  getTrips, setTrips, clearTrips, addTrip, removeTrip,
+  getSelectedId, setSelectedId, getPilotCount, setPilotCount,
+} from './store.js';
 
   // -------- Build palette --------
   const paletteEl = document.getElementById('palette');
@@ -140,10 +136,10 @@ import { parseHpd, fmtCH, randInt } from './format.js';
   clearBtn.className = 'clear-btn';
   clearBtn.textContent = 'Clear all trips';
   clearBtn.addEventListener('click', () => {
-    if (trips.length === 0) return;
+    if (getTrips().length === 0) return;
     if (confirm('Remove all trips from the schedule?')) {
-      trips = [];
-      selectedId = null;
+      clearTrips();
+      setSelectedId(null);
       renderAll();
       updateToolbar();
     }
@@ -176,7 +172,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-    for (let p = 1; p <= PILOT_COUNT; p++) {
+    for (let p = 1; p <= getPilotCount(); p++) {
       const tr = document.createElement('tr');
       const sen = document.createElement('th');
       sen.className = 'sen-cell';
@@ -245,7 +241,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     else if (t.type === 'training') typeClass = ' training';
     else if (t.type === 'reserve') typeClass = ' reserve';
     else if (t.type === 'vacation') typeClass = ' vacation';
-    el.className = 'trip' + typeClass + (t.id === selectedId ? ' selected' : '');
+    el.className = 'trip' + typeClass + (t.id === getSelectedId() ? ' selected' : '');
     el.style.background = t.color;
     el.style.left = pos.left + 'px';
     el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
@@ -284,7 +280,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
 
   function renderAll() {
     if (tripLayer) tripLayer.innerHTML = '';
-    trips.filter(t => !t.inPool).forEach(renderTrip);
+    getTrips().filter(t => !t.inPool).forEach(renderTrip);
     updateCreditHours();
     renderPool();
   }
@@ -294,7 +290,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     const poolEl = document.getElementById('tripPool');
     const poolCount = document.getElementById('poolCount');
     if (!poolBars || !poolEl) return;
-    const poolTrips = trips.filter(t => t.inPool);
+    const poolTrips = getTrips().filter(t => t.inPool);
     if (poolTrips.length === 0) {
       poolEl.classList.remove('visible');
       poolBars.innerHTML = '';
@@ -320,7 +316,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
 
   function updateCreditHours() {
     // Zero everything first
-    for (let p = 1; p <= PILOT_COUNT; p++) {
+    for (let p = 1; p <= getPilotCount(); p++) {
       const badge = document.querySelector(`.ch-badge[data-ch-for="${p}"]`);
       if (!badge) continue;
       badge.textContent = '0:00';
@@ -328,7 +324,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     }
     // Sum CH per pilot (skip trips that have been moved into the pool)
     const totals = {};
-    trips.forEach(t => {
+    getTrips().forEach(t => {
       if (t.inPool) return;
       totals[t.pilot] = (totals[t.pilot] || 0) + t.days * t.hoursPerDay;
     });
@@ -357,8 +353,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     const cell = pointToCell(e.clientX, e.clientY);
     if (!cell) return;
     const day = Math.max(1, Math.min(DAY_COUNT - payload.days + 1, cell.day));
-    trips.push({
-      id: nextId++,
+    const id = addTrip({
       type: payload.type || 'trip',
       subType: payload.subType,
       pilot: cell.pilot, day,
@@ -366,12 +361,12 @@ import { parseHpd, fmtCH, randInt } from './format.js';
       hoursPerDay: payload.hoursPerDay,
       color: payload.color
     });
-    selectTrip(trips[trips.length - 1].id);
+    selectTrip(id);
   });
 
   // -------- Move --------
   function startMove(id, ev) {
-    const trip = trips.find(t => t.id === id);
+    const trip = getTrips().find(t => t.id === id);
     if (!trip) return;
     const cellPos = getCellPos(trip.pilot, trip.day);
     if (!cellPos) return;
@@ -388,7 +383,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
       let newDay = origDay + dayDelta;
       let newPilot = origPilot + pilotDelta;
       newDay = Math.max(1, Math.min(DAY_COUNT - trip.days + 1, newDay));
-      newPilot = Math.max(1, Math.min(PILOT_COUNT, newPilot));
+      newPilot = Math.max(1, Math.min(getPilotCount(), newPilot));
       if (newDay !== trip.day || newPilot !== trip.pilot) {
         trip.day = newDay;
         trip.pilot = newPilot;
@@ -405,7 +400,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
 
   // -------- Resize --------
   function startResize(id, ev) {
-    const trip = trips.find(t => t.id === id);
+    const trip = getTrips().find(t => t.id === id);
     if (!trip) return;
     const cellPos = getCellPos(trip.pilot, trip.day);
     if (!cellPos) return;
@@ -440,8 +435,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     s.dataset.color = c;
     s.addEventListener('mousedown', e => e.stopPropagation());
     s.addEventListener('click', () => {
-      if (selectedId == null) return;
-      const t = trips.find(t => t.id === selectedId);
+      if (getSelectedId() == null) return;
+      const t = getTrips().find(t => t.id === getSelectedId());
       if (t) { t.color = c; renderAll(); updateToolbar(); }
     });
     swatchesEl.appendChild(s);
@@ -456,8 +451,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
   hpdInput.addEventListener('mousedown', e => e.stopPropagation());
 
   function commitHpd() {
-    if (selectedId == null) return;
-    const t = trips.find(t => t.id === selectedId);
+    if (getSelectedId() == null) return;
+    const t = getTrips().find(t => t.id === getSelectedId());
     if (!t || t.type !== 'reserve') return;
     const v = parseHpd(hpdInput.value);
     if (v == null || v <= 0) {
@@ -475,25 +470,25 @@ import { parseHpd, fmtCH, randInt } from './format.js';
   });
 
   function deleteSelected() {
-    if (selectedId == null) return;
-    trips = trips.filter(t => t.id !== selectedId);
-    selectedId = null;
+    if (getSelectedId() == null) return;
+    removeTrip(getSelectedId());
+    setSelectedId(null);
     renderAll();
     updateToolbar();
   }
 
   function selectTrip(id) {
-    selectedId = id;
+    setSelectedId(id);
     renderAll();
     updateToolbar();
   }
 
   function updateToolbar() {
-    if (selectedId == null) {
+    if (getSelectedId() == null) {
       toolbar.classList.remove('visible');
       return;
     }
-    const t = trips.find(t => t.id === selectedId);
+    const t = getTrips().find(t => t.id === getSelectedId());
     if (!t) { toolbar.classList.remove('visible'); return; }
     toolbar.classList.add('visible');
     [...swatchesEl.children].forEach(s => {
@@ -516,20 +511,20 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     if (e.target.closest('.trip')) return;
     if (e.target.closest('.toolbar')) return;
     if (e.target.closest('.palette')) return;
-    selectedId = null;
+    setSelectedId(null);
     renderAll();
     updateToolbar();
   });
 
   document.addEventListener('keydown', e => {
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId != null) {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && getSelectedId() != null) {
       const tag = (e.target && e.target.tagName) || '';
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       e.preventDefault();
       deleteSelected();
     }
     if (e.key === 'Escape') {
-      selectedId = null;
+      setSelectedId(null);
       renderAll();
       updateToolbar();
     }
@@ -538,8 +533,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
   // -------- Randomizer --------
   function randomizeSchedule(minCh, maxCh) {
     if (maxCh < minCh) [minCh, maxCh] = [maxCh, minCh];
-    trips = [];
-    selectedId = null;
+    clearTrips();
+    setSelectedId(null);
 
     const CARRY_OVER_PROB = 0.4;
     const CARRY_OVER_COLOR = '#64748b';
@@ -550,21 +545,21 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     const VACATION_HPD = 6;
     const VACATION_COLOR = '#7e22ce';
 
-    // Scale special-pilot counts proportionally to current PILOT_COUNT (baseline = 20)
+    // Scale special-pilot counts proportionally to current getPilotCount() (baseline = 20)
     // Baseline: 4 reserve, 2 vacation, 2 training out of 20.
-    const reserveCount  = Math.max(1, Math.round(PILOT_COUNT * 0.20));
-    const vacationCount = PILOT_COUNT >= 8 ? Math.max(1, Math.round(PILOT_COUNT * 0.10)) : 0;
-    const trainingCount = PILOT_COUNT >= 8 ? Math.max(1, Math.round(PILOT_COUNT * 0.10)) : 0;
+    const reserveCount  = Math.max(1, Math.round(getPilotCount() * 0.20));
+    const vacationCount = getPilotCount() >= 8 ? Math.max(1, Math.round(getPilotCount() * 0.10)) : 0;
+    const trainingCount = getPilotCount() >= 8 ? Math.max(1, Math.round(getPilotCount() * 0.10)) : 0;
 
     // Last N pilots are reserve-only
     const reservePilots = new Set();
-    for (let i = 0; i < Math.min(reserveCount, PILOT_COUNT); i++) {
-      reservePilots.add(PILOT_COUNT - i);
+    for (let i = 0; i < Math.min(reserveCount, getPilotCount()); i++) {
+      reservePilots.add(getPilotCount() - i);
     }
 
     // Eligible pool for training & vacation = everyone NOT in reserve
     const eligible = [];
-    for (let p = 1; p <= PILOT_COUNT; p++) if (!reservePilots.has(p)) eligible.push(p);
+    for (let p = 1; p <= getPilotCount(); p++) if (!reservePilots.has(p)) eligible.push(p);
     for (let i = eligible.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
@@ -592,7 +587,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
       return null;
     }
 
-    for (let p = 1; p <= PILOT_COUNT; p++) {
+    for (let p = 1; p <= getPilotCount(); p++) {
       const targetCh = randInt(minCh, maxCh);
       const taken = new Array(DAY_COUNT + 2).fill(false);
       let chSoFar = 0;
@@ -604,8 +599,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
         // Don't let carry-over alone exceed maxCh
         while (carryOverDays * 6 > maxCh && carryOverDays > 1) carryOverDays--;
         if (carryOverDays * 6 <= maxCh) {
-          trips.push({
-            id: nextId++, type: 'carryover',
+          addTrip({
+            type: 'carryover',
             pilot: p, day: 1, days: carryOverDays,
             hoursPerDay: 6, color: CARRY_OVER_COLOR
           });
@@ -648,8 +643,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
           const sub = RESERVE_TEMPLATES[randInt(0, RESERVE_TEMPLATES.length - 1)];
           const start = tryPlace(taken, len, earliestDay);
           if (start == null) continue;
-          trips.push({
-            id: nextId++, type: 'reserve', subType: sub.subType,
+          addTrip({
+            type: 'reserve', subType: sub.subType,
             pilot: p, day: start, days: len,
             hoursPerDay: hpd, color: sub.color
           });
@@ -662,8 +657,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
       if (vacationPilots.has(p) && chSoFar + VACATION_DAYS * VACATION_HPD <= maxCh) {
         const start = tryPlace(taken, VACATION_DAYS, earliestDay);
         if (start != null) {
-          trips.push({
-            id: nextId++, type: 'vacation',
+          addTrip({
+            type: 'vacation',
             pilot: p, day: start, days: VACATION_DAYS,
             hoursPerDay: VACATION_HPD, color: VACATION_COLOR
           });
@@ -675,8 +670,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
       if (trainingPilots.has(p) && chSoFar + TRAINING_DAYS * TRAINING_HPD <= maxCh) {
         const start = tryPlace(taken, TRAINING_DAYS, earliestDay);
         if (start != null) {
-          trips.push({
-            id: nextId++, type: 'training',
+          addTrip({
+            type: 'training',
             pilot: p, day: start, days: TRAINING_DAYS,
             hoursPerDay: TRAINING_HPD, color: TRAINING_COLOR
           });
@@ -710,8 +705,8 @@ import { parseHpd, fmtCH, randInt } from './format.js';
       for (const seg of segments) {
         const start = tryPlace(taken, seg, earliestDay);
         if (start == null) continue;
-        trips.push({
-          id: nextId++, type: 'trip',
+        addTrip({
+          type: 'trip',
           pilot: p, day: start, days: seg,
           hoursPerDay: 6,
           color: COLORS[Math.floor(Math.random() * COLORS.length)]
@@ -808,7 +803,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
   function sendAffectedToPool() {
     if (feasibilityFirst == null) return;
     // Find trip + reserve bars on pilots BELOW the bidding pilot
-    const toMove = trips.filter(t =>
+    const toMove = getTrips().filter(t =>
       !t.inPool &&
       t.pilot > feasibilityFirst &&
       (t.type === 'trip' || t.type === 'reserve')
@@ -825,7 +820,7 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     });
     setTimeout(() => {
       toMove.forEach(t => { t.inPool = true; });
-      selectedId = null;
+      setSelectedId(null);
       renderAll();
       updateToolbar();
       feasibilityBanner.innerHTML =
@@ -898,12 +893,12 @@ import { parseHpd, fmtCH, randInt } from './format.js';
     let n = parseInt(pilotCountInput.value, 10);
     if (!Number.isFinite(n) || n < 1) n = 1;
     if (n > 50) n = 50;
-    if (n === PILOT_COUNT) return;
-    PILOT_COUNT = n;
+    if (n === getPilotCount()) return;
+    setPilotCount(n);
     pilotCountInput.value = n;
     // Drop any trips assigned to pilots that no longer exist
-    trips = trips.filter(t => t.pilot <= PILOT_COUNT);
-    selectedId = null;
+    setTrips(getTrips().filter(t => t.pilot <= getPilotCount()));
+    setSelectedId(null);
     // Reset feasibility — rows have been recreated
     if (feasibilityMode !== 'off') exitFeasibility();
     buildGrid();
