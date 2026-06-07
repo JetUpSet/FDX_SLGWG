@@ -1,20 +1,11 @@
-import {
-  DAY_COUNT, BAR_H, CH_PER_DAY, COLORS,
-  TRIP_TEMPLATES, CARRY_OVER_TEMPLATES, TRAINING_TEMPLATES,
-  RESERVE_TEMPLATES, VACATION_TEMPLATES,
-} from './config.js';
-import { parseHpd, fmtCH, randInt } from './format.js';
-import {
-  getTrips, setTrips, clearTrips, addTrip, removeTrip,
-  getSelectedId, setSelectedId, getPilotCount, setPilotCount,
-} from './store.js';
-import { buildGrid, getCellPos, pointToCell, getTripLayer, setGridHandlers } from './grid.js';
+import { buildGrid, setGridHandlers } from './grid.js';
 import { renderAll, setRenderHandlers } from './render.js';
 import { initToolbar, updateToolbar, setToolbarHandlers } from './toolbar.js';
 import { selectTrip, startMove, startResize, deleteSelected, initInteractions } from './interactions.js';
 import { initPalette } from './palette.js';
 import { initRandomizer } from './randomizer.js';
 import { initFeasibility, handleFeasibilitySenClick, exitFeasibility } from './feasibility.js';
+import { getTrips, setTrips, getPilotCount, setPilotCount, setSelectedId } from './store.js';
 
   // -------- Build palette --------
   initPalette();
