@@ -6,7 +6,18 @@ Well lets be honest, PBS can be complicated sometimes, and even more complicated
 
 ## Prerequisites
 
-Your local browser.
+The app itself is static and dependency-free — just `index.html`, `styles.css`, and the
+modules in `js/`.
+
+**Running it:** because it now uses native ES modules, it must be served over HTTP
+(opening `index.html` directly via `file://` will not load the modules). Any static
+server works:
+
+- VS Code "Live Server" (right-click `index.html` → "Open with Live Server"), or
+- `python3 -m http.server 8137`, then open `http://localhost:8137/`.
+
+**Tests (dev only):** install once with `npm install && npx playwright install chromium`,
+then run `npm test`. The app ships with no runtime dependencies; the test harness is dev-only.
 
 ## Features
 
