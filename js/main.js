@@ -9,6 +9,7 @@ import {
   getSelectedId, setSelectedId, getPilotCount, setPilotCount,
 } from './store.js';
 import { buildGrid, getCellPos, pointToCell, getTripLayer, setGridHandlers } from './grid.js';
+import { renderAll, setRenderHandlers } from './render.js';
 
   // -------- Build palette --------
   const paletteEl = document.getElementById('palette');
@@ -151,112 +152,8 @@ import { buildGrid, getCellPos, pointToCell, getTripLayer, setGridHandlers } fro
   const gridEl = document.getElementById('grid');
 
   setGridHandlers({ onSenClick: handleFeasibilitySenClick });
+  setRenderHandlers({ onSelect: selectTrip, onMove: startMove, onResize: startResize });
   buildGrid();
-
-  // -------- Render --------
-  function renderTrip(t) {
-    const pos = getCellPos(t.pilot, t.day);
-    if (!pos) return;
-    const el = document.createElement('div');
-    let typeClass = '';
-    if (t.type === 'carryover') typeClass = ' carryover';
-    else if (t.type === 'training') typeClass = ' training';
-    else if (t.type === 'reserve') typeClass = ' reserve';
-    else if (t.type === 'vacation') typeClass = ' vacation';
-    el.className = 'trip' + typeClass + (t.id === getSelectedId() ? ' selected' : '');
-    el.style.background = t.color;
-    el.style.left = pos.left + 'px';
-    el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
-    el.style.width = (t.days * pos.width - 2) + 'px';
-    const ch = t.days * t.hoursPerDay;
-    const prefix = t.type === 'carryover' ? 'CO '
-      : t.type === 'training' ? 'TR '
-      : t.type === 'reserve' ? (t.subType ? t.subType + ' ' : 'RS ')
-      : t.type === 'vacation' ? 'VAC '
-      : '';
-    el.textContent = t.days === 1
-      ? `${prefix}${fmtCH(ch)}`
-      : `${prefix}${t.days}d · ${fmtCH(ch)}`;
-    el.dataset.id = t.id;
-
-    const handle = document.createElement('div');
-    handle.className = 'resize-handle';
-    el.appendChild(handle);
-
-    el.addEventListener('mousedown', e => {
-      if (e.target === handle) return;
-      e.preventDefault();
-      selectTrip(t.id);
-      startMove(t.id, e);
-    });
-
-    handle.addEventListener('mousedown', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      selectTrip(t.id);
-      startResize(t.id, e);
-    });
-
-    getTripLayer().appendChild(el);
-  }
-
-  function renderAll() {
-    if (getTripLayer()) getTripLayer().innerHTML = '';
-    getTrips().filter(t => !t.inPool).forEach(renderTrip);
-    updateCreditHours();
-    renderPool();
-  }
-
-  function renderPool() {
-    const poolBars = document.getElementById('poolBars');
-    const poolEl = document.getElementById('tripPool');
-    const poolCount = document.getElementById('poolCount');
-    if (!poolBars || !poolEl) return;
-    const poolTrips = getTrips().filter(t => t.inPool);
-    if (poolTrips.length === 0) {
-      poolEl.classList.remove('visible');
-      poolBars.innerHTML = '';
-      poolCount.textContent = '0';
-      return;
-    }
-    poolEl.classList.add('visible');
-    poolCount.textContent = poolTrips.length + (poolTrips.length === 1 ? ' bar' : ' bars');
-    poolBars.innerHTML = '';
-    poolTrips.forEach((t, i) => {
-      const div = document.createElement('div');
-      let cls = '';
-      if (t.type === 'reserve') cls = ' reserve';
-      div.className = 'pool-bar' + cls;
-      div.style.background = t.color;
-      div.style.animationDelay = (i * 0.04) + 's';
-      const ch = t.days * t.hoursPerDay;
-      const prefix = t.type === 'reserve' ? (t.subType ? t.subType + ' ' : 'RS ') : '';
-      div.textContent = prefix + (t.days === 1 ? fmtCH(ch) : t.days + 'd · ' + fmtCH(ch));
-      poolBars.appendChild(div);
-    });
-  }
-
-  function updateCreditHours() {
-    // Zero everything first
-    for (let p = 1; p <= getPilotCount(); p++) {
-      const badge = document.querySelector(`.ch-badge[data-ch-for="${p}"]`);
-      if (!badge) continue;
-      badge.textContent = '0:00';
-      badge.classList.add('zero');
-    }
-    // Sum CH per pilot (skip trips that have been moved into the pool)
-    const totals = {};
-    getTrips().forEach(t => {
-      if (t.inPool) return;
-      totals[t.pilot] = (totals[t.pilot] || 0) + t.days * t.hoursPerDay;
-    });
-    Object.entries(totals).forEach(([pilot, ch]) => {
-      const badge = document.querySelector(`.ch-badge[data-ch-for="${pilot}"]`);
-      if (!badge) return;
-      badge.textContent = fmtCH(ch);
-      badge.classList.toggle('zero', ch === 0);
-    });
-  }
 
   // -------- Drop from palette --------
   gridEl.addEventListener('dragover', e => {
