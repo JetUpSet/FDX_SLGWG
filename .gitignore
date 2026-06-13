@@ -2,5 +2,8 @@ node_modules/
 test-results/
 playwright-report/
 
+# Local agent/project memory - keep private, do not track
+AGENTS.md
+
 # Claude Code / superpowers working notes — keep local, do not track
 docs/superpowers/
