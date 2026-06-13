@@ -16,8 +16,30 @@ test('loads with no console errors and builds the grid', async ({ page }) => {
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('palette renders all eleven template items', async ({ page }) => {
-  await expect(page.locator('.palette-item')).toHaveCount(11); // 5 trip + 1 carry + 1 train + 3 reserve + 1 vacation
+test('palette renders all eighteen template items across expected sections', async ({ page }) => {
+  await expect(page.locator('.palette-item')).toHaveCount(18);
+  await expect(page.locator('.palette h2')).toContainText([
+    'Trip Templates',
+    'Carry Over',
+    'Training',
+    'Reserve',
+    'Vacation',
+    'Leave',
+    'Absence',
+    'Work Period',
+  ]);
+
+  for (const label of [
+    '10-day trip',
+    '14-day trip',
+    'MLA',
+    'RET',
+    'DOG',
+    'JRY',
+    'Work Period',
+  ]) {
+    await expect(page.locator('.palette-item', { hasText: label })).toBeVisible();
+  }
 });
 
 // 7: randomizer wiring. Asserts invariants, not exact output (Math.random).

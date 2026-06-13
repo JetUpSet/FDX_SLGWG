@@ -13,6 +13,8 @@ export const TRIP_TEMPLATES = [
   { days: 3, color: '#4f46e5' },
   { days: 4, color: '#7c3aed' },
   { days: 5, color: '#ea580c' },
+  { days: 10, color: '#2563eb' },
+  { days: 14, color: '#9333ea' },
 ];
 export const CARRY_OVER_TEMPLATES = [
   { hoursPerDay: 6, color: '#64748b' },
@@ -27,4 +29,15 @@ export const RESERVE_TEMPLATES = [
 ];
 export const VACATION_TEMPLATES = [
   { days: 7, hoursPerDay: 6, color: '#7e22ce' },
+];
+export const LEAVE_TEMPLATES = [
+  { label: 'MLA', days: 3, hoursPerDay: 0, color: '#475569' },
+  { label: 'RET', days: 3, hoursPerDay: 0, color: '#334155' },
+];
+export const ABSENCE_TEMPLATES = [
+  { label: 'DOG', days: 3, hoursPerDay: 0, color: '#be123c' },
+  { label: 'JRY', days: 3, hoursPerDay: 0, color: '#c2410c' },
+];
+export const WORK_PERIOD_TEMPLATES = [
+  { label: 'Work Period', days: 5, hoursPerDay: 0, color: '#f59e0b' },
 ];
