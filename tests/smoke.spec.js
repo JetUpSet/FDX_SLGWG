@@ -4,6 +4,29 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
+async function dropPayloadOnCell(page, payload, pilot = 1, day = 1) {
+  const cell = page.locator(`td.day-cell[data-pilot="${pilot}"][data-day="${day}"]`);
+  const box = await cell.boundingBox();
+  expect(box).not.toBeNull();
+
+  await page.evaluate(({ payload, x, y }) => {
+    const target = document.elementFromPoint(x, y);
+    const dataTransfer = new DataTransfer();
+    dataTransfer.setData('text/plain', JSON.stringify(payload));
+    target.dispatchEvent(new DragEvent('drop', {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      dataTransfer,
+    }));
+  }, {
+    payload,
+    x: box.x + box.width / 2,
+    y: box.y + box.height / 2,
+  });
+}
+
 // 1 + module-load safety: the single most valuable check for an ESM refactor.
 test('loads with no console errors and builds the grid', async ({ page }) => {
   const errors = [];
@@ -16,8 +39,62 @@ test('loads with no console errors and builds the grid', async ({ page }) => {
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('palette renders all eleven template items', async ({ page }) => {
-  await expect(page.locator('.palette-item')).toHaveCount(11); // 5 trip + 1 carry + 1 train + 3 reserve + 1 vacation
+test('palette renders all eighteen template items across expected sections', async ({ page }) => {
+  await expect(page.locator('.palette-item')).toHaveCount(18);
+  await expect(page.locator('.palette h2')).toContainText([
+    'Trip Templates',
+    'Carry Over',
+    'Training',
+    'Reserve',
+    'Vacation',
+    'Leave',
+    'Absence',
+    'Work Period',
+  ]);
+
+  for (const label of [
+    '10-day trip',
+    '14-day trip',
+    'MLA',
+    'RET',
+    'DOG',
+    'JRY',
+    'Work Period',
+  ]) {
+    await expect(page.locator('.palette-item', { hasText: label })).toBeVisible();
+  }
+});
+
+test('new templates drop with labels and zero-credit overlays stay visual-only', async ({ page }) => {
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'trip', days: 10,
+    hoursPerDay: 6, color: '#2563eb'
+  }, 1, 1);
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'leave', label: 'MLA', days: 3,
+    hoursPerDay: 0, color: '#475569'
+  }, 1, 12);
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'absence', label: 'DOG', days: 3,
+    hoursPerDay: 0, color: '#be123c'
+  }, 1, 16);
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'workperiod', label: 'Work Period', days: 5,
+    hoursPerDay: 0, color: '#f59e0b'
+  }, 1, 1);
+
+  await expect(page.locator('.trip', { hasText: '10d · 60:00' })).toBeVisible();
+  await expect(page.locator('.trip.leave', { hasText: 'MLA 3d' })).toBeVisible();
+  await expect(page.locator('.trip.absence', { hasText: 'DOG 3d' })).toBeVisible();
+  await expect(page.locator('.trip.workperiod', { hasText: 'Work Period 5d' })).toBeVisible();
+  await expect(page.locator('.ch-badge[data-ch-for="1"]')).toHaveText('60:00');
+
+  const renderedTexts = await page.locator('.trip').allInnerTexts();
+  expect(renderedTexts[renderedTexts.length - 1]).toBe('Work Period 5d');
+
+  const workPeriodOpacity = await page.locator('.trip.workperiod')
+    .evaluate(el => Number(getComputedStyle(el).opacity));
+  expect(workPeriodOpacity).toBeLessThan(1);
 });
 
 // 7: randomizer wiring. Asserts invariants, not exact output (Math.random).

@@ -1,5 +1,15 @@
 // js/palette.js — builds the draggable trip-template palette and the clear-all button.
-import { CH_PER_DAY, TRIP_TEMPLATES, CARRY_OVER_TEMPLATES, TRAINING_TEMPLATES, RESERVE_TEMPLATES, VACATION_TEMPLATES } from './config.js';
+import {
+  CH_PER_DAY,
+  TRIP_TEMPLATES,
+  CARRY_OVER_TEMPLATES,
+  TRAINING_TEMPLATES,
+  RESERVE_TEMPLATES,
+  VACATION_TEMPLATES,
+  LEAVE_TEMPLATES,
+  ABSENCE_TEMPLATES,
+  WORK_PERIOD_TEMPLATES,
+} from './config.js';
 import { fmtCH } from './format.js';
 import { getTrips, clearTrips, setSelectedId } from './store.js';
 import { renderAll } from './render.js';
@@ -117,6 +127,78 @@ export function initPalette() {
     div.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', JSON.stringify({
         kind: 'new', type: 'vacation', days: t.days,
+        hoursPerDay: t.hoursPerDay, color: t.color
+      }));
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    paletteEl.appendChild(div);
+  });
+
+  // ---- Leave section ----
+  const leaveHeader = document.createElement('h2');
+  leaveHeader.className = 'subsequent';
+  leaveHeader.textContent = 'Leave';
+  paletteEl.appendChild(leaveHeader);
+
+  LEAVE_TEMPLATES.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'palette-item leave';
+    div.style.background = t.color;
+    div.draggable = true;
+    div.innerHTML =
+      `<span>${t.label}</span>` +
+      `<span class="days-badge">${t.days}d</span>`;
+    div.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        kind: 'new', type: 'leave', label: t.label, days: t.days,
+        hoursPerDay: t.hoursPerDay, color: t.color
+      }));
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    paletteEl.appendChild(div);
+  });
+
+  // ---- Absence section ----
+  const absenceHeader = document.createElement('h2');
+  absenceHeader.className = 'subsequent';
+  absenceHeader.textContent = 'Absence';
+  paletteEl.appendChild(absenceHeader);
+
+  ABSENCE_TEMPLATES.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'palette-item absence';
+    div.style.background = t.color;
+    div.draggable = true;
+    div.innerHTML =
+      `<span>${t.label}</span>` +
+      `<span class="days-badge">${t.days}d</span>`;
+    div.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        kind: 'new', type: 'absence', label: t.label, days: t.days,
+        hoursPerDay: t.hoursPerDay, color: t.color
+      }));
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    paletteEl.appendChild(div);
+  });
+
+  // ---- Work Period section ----
+  const workPeriodHeader = document.createElement('h2');
+  workPeriodHeader.className = 'subsequent';
+  workPeriodHeader.textContent = 'Work Period';
+  paletteEl.appendChild(workPeriodHeader);
+
+  WORK_PERIOD_TEMPLATES.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'palette-item workperiod';
+    div.style.background = t.color;
+    div.draggable = true;
+    div.innerHTML =
+      `<span>${t.label}</span>` +
+      `<span class="days-badge">${t.days}d</span>`;
+    div.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        kind: 'new', type: 'workperiod', label: t.label, days: t.days,
         hoursPerDay: t.hoursPerDay, color: t.color
       }));
       e.dataTransfer.effectAllowed = 'copy';

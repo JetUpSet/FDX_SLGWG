@@ -7,37 +7,55 @@ import { getCellPos, getTripLayer } from './grid.js';
 let handlers = { onSelect() {}, onMove() {}, onResize() {} };
 export function setRenderHandlers(h) { handlers = { ...handlers, ...h }; }
 
+const TYPE_CLASS_NAMES = new Set([
+  'carryover',
+  'training',
+  'reserve',
+  'vacation',
+  'leave',
+  'absence',
+  'workperiod',
+]);
+const LABEL_ONLY_TYPES = new Set(['leave', 'absence', 'workperiod']);
+
 export function renderAll() {
   const layer = getTripLayer();
   if (layer) layer.innerHTML = '';
-  getTrips().filter(t => !t.inPool).forEach(renderTrip);
+  const visibleTrips = getTrips().filter(t => !t.inPool);
+  visibleTrips.filter(t => t.type !== 'workperiod').forEach(renderTrip);
+  visibleTrips.filter(t => t.type === 'workperiod').forEach(renderTrip);
   updateCreditHours();
   renderPool();
 }
 
-function renderTrip(t) {
-  const pos = getCellPos(t.pilot, t.day);
-  if (!pos) return;
-  const el = document.createElement('div');
-  let typeClass = '';
-  if (t.type === 'carryover') typeClass = ' carryover';
-  else if (t.type === 'training') typeClass = ' training';
-  else if (t.type === 'reserve') typeClass = ' reserve';
-  else if (t.type === 'vacation') typeClass = ' vacation';
-  el.className = 'trip' + typeClass + (t.id === getSelectedId() ? ' selected' : '');
-  el.style.background = t.color;
-  el.style.left = pos.left + 'px';
-  el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
-  el.style.width = (t.days * pos.width - 2) + 'px';
+function formatTripLabel(t) {
+  if (LABEL_ONLY_TYPES.has(t.type)) {
+    const label = t.label || t.type;
+    return t.days === 1 ? label : `${label} ${t.days}d`;
+  }
+
   const ch = t.days * t.hoursPerDay;
   const prefix = t.type === 'carryover' ? 'CO '
     : t.type === 'training' ? 'TR '
     : t.type === 'reserve' ? (t.subType ? t.subType + ' ' : 'RS ')
     : t.type === 'vacation' ? 'VAC '
     : '';
-  el.textContent = t.days === 1
+  return t.days === 1
     ? `${prefix}${fmtCH(ch)}`
     : `${prefix}${t.days}d · ${fmtCH(ch)}`;
+}
+
+function renderTrip(t) {
+  const pos = getCellPos(t.pilot, t.day);
+  if (!pos) return;
+  const el = document.createElement('div');
+  const typeClass = TYPE_CLASS_NAMES.has(t.type) ? ' ' + t.type : '';
+  el.className = 'trip' + typeClass + (t.id === getSelectedId() ? ' selected' : '');
+  el.style.background = t.color;
+  el.style.left = pos.left + 'px';
+  el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
+  el.style.width = (t.days * pos.width - 2) + 'px';
+  el.textContent = formatTripLabel(t);
   el.dataset.id = t.id;
 
   const handle = document.createElement('div');

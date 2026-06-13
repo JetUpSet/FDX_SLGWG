@@ -100,6 +100,7 @@ export function initInteractions() {
     const day = Math.max(1, Math.min(DAY_COUNT - payload.days + 1, cell.day));
     const id = addTrip({
       type: payload.type || 'trip',
+      label: payload.label,
       subType: payload.subType,
       pilot: cell.pilot, day,
       days: payload.days,
