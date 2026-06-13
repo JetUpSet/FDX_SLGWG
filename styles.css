@@ -191,6 +191,16 @@
       repeating-linear-gradient(45deg, rgba(255,255,255,0.20) 0, rgba(255,255,255,0.20) 3px, transparent 3px, transparent 9px),
       repeating-linear-gradient(-45deg, rgba(255,255,255,0.20) 0, rgba(255,255,255,0.20) 3px, transparent 3px, transparent 9px);
   }
+  .palette-item.leave {
+    box-shadow: inset 4px 0 0 rgba(255,255,255,0.45), 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .palette-item.absence {
+    box-shadow: inset 4px 0 0 rgba(255,255,255,0.45), 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .palette-item.workperiod {
+    color: #111827;
+    box-shadow: inset 0 0 0 1px rgba(17,24,39,0.22), 0 1px 2px rgba(0,0,0,0.1);
+  }
   .palette-item {
     color: white; border-radius: 5px; padding: 9px 12px; margin-bottom: 8px;
     cursor: grab; font-size: 13px; font-weight: 600; user-select: none;
@@ -284,6 +294,7 @@
   .trip:active { cursor: grabbing; }
   .trip.selected {
     box-shadow: 0 0 0 2px #1f2937, 0 2px 6px rgba(0,0,0,0.22);
+    z-index: 5;
   }
   .trip.carryover {
     background-image: repeating-linear-gradient(
@@ -315,6 +326,23 @@
     background-image:
       repeating-linear-gradient(45deg, rgba(255,255,255,0.24) 0, rgba(255,255,255,0.24) 3px, transparent 3px, transparent 9px),
       repeating-linear-gradient(-45deg, rgba(255,255,255,0.24) 0, rgba(255,255,255,0.24) 3px, transparent 3px, transparent 9px);
+  }
+  .trip.leave {
+    border: 1px solid rgba(255,255,255,0.38);
+  }
+  .trip.absence {
+    border: 1px solid rgba(255,255,255,0.38);
+  }
+  .trip.workperiod {
+    color: #111827;
+    opacity: 0.62;
+    z-index: 4;
+    border: 1px solid rgba(17,24,39,0.32);
+    box-shadow: 0 1px 5px rgba(17,24,39,0.20);
+  }
+  .trip.workperiod.selected {
+    box-shadow: 0 0 0 2px #1f2937, 0 2px 6px rgba(0,0,0,0.22);
+    z-index: 5;
   }
   .trip .resize-handle {
     position: absolute; right: 0; top: 0; bottom: 0; width: 8px;
