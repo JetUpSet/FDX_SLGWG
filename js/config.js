@@ -39,5 +39,8 @@ export const ABSENCE_TEMPLATES = [
   { label: 'JRY', days: 3, hoursPerDay: 0, color: '#c2410c' },
 ];
 export const WORK_PERIOD_TEMPLATES = [
-  { label: 'Work Period', days: 5, hoursPerDay: 0, color: '#f59e0b' },
+  { label: 'Work Period', days: 5, hoursPerDay: 0, color: '#111827' },
+];
+export const DEPARTURE_TEMPLATES = [
+  { label: 'Departure', days: 3, hoursPerDay: 0, color: '#1d4ed8' },
 ];

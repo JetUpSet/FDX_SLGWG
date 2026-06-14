@@ -198,8 +198,9 @@
     box-shadow: inset 4px 0 0 rgba(255,255,255,0.45), 0 1px 2px rgba(0,0,0,0.1);
   }
   .palette-item.workperiod {
-    color: #111827;
-    box-shadow: inset 0 0 0 1px rgba(17,24,39,0.22), 0 1px 2px rgba(0,0,0,0.1);
+    background: #6b7280;
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(17,24,39,0.18), 0 1px 2px rgba(0,0,0,0.1);
   }
   .palette-item {
     color: white; border-radius: 5px; padding: 9px 12px; margin-bottom: 8px;
@@ -247,7 +248,7 @@
   }
   .grid-table .day-head.weekend { background: #eef0f4; color: #4b5563; }
   .grid-table .sen-cell {
-    width: 120px; height: 36px; background: #f9fafb;
+    width: 120px; height: 50px; background: #f9fafb;
     font-size: 12.5px; font-weight: 600; color: #374151;
     text-align: left; padding: 0 12px;
     white-space: nowrap;
@@ -273,7 +274,7 @@
     color: #9ca3af; background: transparent;
   }
   .grid-table .day-cell {
-    width: 38px; height: 36px; background: white;
+    width: 38px; height: 50px; background: white;
   }
   .grid-table .day-cell.weekend { background: #fafbfc; }
 
@@ -334,14 +335,57 @@
     border: 1px solid rgba(255,255,255,0.38);
   }
   .trip.workperiod {
-    color: #111827;
-    opacity: 0.62;
     z-index: 4;
-    border: 1px solid rgba(17,24,39,0.32);
-    box-shadow: 0 1px 5px rgba(17,24,39,0.20);
+    background: transparent;
+    border-style: solid;
+    border-color: currentColor; /* driven by inline color = template color */
+    border-width: 0 5px 4px 5px; /* top right bottom left: fat end caps + thick underline */
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible; /* allow the WOP label to show below the bracket */
+  }
+  .trip.workperiod::after {
+    content: "WOP";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: currentColor;
+    pointer-events: none;
   }
   .trip.workperiod.selected {
-    box-shadow: 0 0 0 2px #1f2937, 0 2px 6px rgba(0,0,0,0.22);
+    box-shadow: 0 0 0 2px #1f2937;
+    z-index: 5;
+  }
+  .trip.departure {
+    z-index: 4;
+    background: transparent;
+    border-style: solid;
+    border-color: currentColor; /* driven by inline color = template color */
+    border-width: 4px 5px 0 5px; /* top overline + fat caps hanging down, no bottom */
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible; /* allow the DEP label to show above the bracket */
+  }
+  .trip.departure::after {
+    content: "DEP";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: currentColor;
+    pointer-events: none;
+  }
+  .trip.departure.selected {
+    box-shadow: 0 0 0 2px #1f2937;
     z-index: 5;
   }
   .trip .resize-handle {

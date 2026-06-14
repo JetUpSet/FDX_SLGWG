@@ -15,15 +15,18 @@ const TYPE_CLASS_NAMES = new Set([
   'leave',
   'absence',
   'workperiod',
+  'departure',
 ]);
 const LABEL_ONLY_TYPES = new Set(['leave', 'absence', 'workperiod']);
+// Outline markers that draw on top of trips and carry no inline text label.
+const OVERLAY_TYPES = new Set(['workperiod', 'departure']);
 
 export function renderAll() {
   const layer = getTripLayer();
   if (layer) layer.innerHTML = '';
   const visibleTrips = getTrips().filter(t => !t.inPool);
-  visibleTrips.filter(t => t.type !== 'workperiod').forEach(renderTrip);
-  visibleTrips.filter(t => t.type === 'workperiod').forEach(renderTrip);
+  visibleTrips.filter(t => !OVERLAY_TYPES.has(t.type)).forEach(renderTrip);
+  visibleTrips.filter(t => OVERLAY_TYPES.has(t.type)).forEach(renderTrip);
   updateCreditHours();
   renderPool();
 }
@@ -51,11 +54,12 @@ function renderTrip(t) {
   const el = document.createElement('div');
   const typeClass = TYPE_CLASS_NAMES.has(t.type) ? ' ' + t.type : '';
   el.className = 'trip' + typeClass + (t.id === getSelectedId() ? ' selected' : '');
-  el.style.background = t.color;
+  if (OVERLAY_TYPES.has(t.type)) el.style.color = t.color;
+  else el.style.background = t.color;
   el.style.left = pos.left + 'px';
   el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
   el.style.width = (t.days * pos.width - 2) + 'px';
-  el.textContent = formatTripLabel(t);
+  if (!OVERLAY_TYPES.has(t.type)) el.textContent = formatTripLabel(t);
   el.dataset.id = t.id;
 
   const handle = document.createElement('div');

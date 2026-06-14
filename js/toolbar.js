@@ -1,7 +1,7 @@
 // js/toolbar.js — the floating selection toolbar (recolor swatches, delete, reserve hours/day).
 import { COLORS } from './config.js';
 import { fmtCH, parseHpd } from './format.js';
-import { getTrips, getSelectedId } from './store.js';
+import { getTrips, getSelectedId, pushHistory } from './store.js';
 import { renderAll } from './render.js';
 
 const toolbar = document.getElementById('toolbar');
@@ -22,7 +22,7 @@ export function initToolbar() {
     s.addEventListener('click', () => {
       if (getSelectedId() == null) return;
       const t = getTrips().find(t => t.id === getSelectedId());
-      if (t) { t.color = c; renderAll(); updateToolbar(); }
+      if (t && t.color !== c) { pushHistory(); t.color = c; renderAll(); updateToolbar(); }
     });
     swatchesEl.appendChild(s);
   });
@@ -46,6 +46,7 @@ function commitHpd() {
     hpdInput.value = fmtCH(t.hoursPerDay);
     return;
   }
+  if (v !== t.hoursPerDay) pushHistory();
   t.hoursPerDay = v;
   renderAll();
   hpdInput.value = fmtCH(t.hoursPerDay);

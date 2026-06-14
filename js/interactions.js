@@ -1,6 +1,6 @@
 // js/interactions.js — pointer/keyboard interactions: create (drop), move, resize, select, delete.
 import { DAY_COUNT } from './config.js';
-import { getTrips, getSelectedId, setSelectedId, removeTrip, addTrip, getPilotCount } from './store.js';
+import { getTrips, getSelectedId, setSelectedId, removeTrip, addTrip, getPilotCount, pushHistory, undo } from './store.js';
 import { renderAll } from './render.js';
 import { getCellPos, pointToCell } from './grid.js';
 import { updateToolbar } from './toolbar.js';
@@ -15,6 +15,7 @@ export function selectTrip(id) {
 
 export function deleteSelected() {
   if (getSelectedId() == null) return;
+  pushHistory();
   removeTrip(getSelectedId());
   setSelectedId(null);
   renderAll();
@@ -32,6 +33,7 @@ export function startMove(id, ev) {
   const startY = ev.clientY;
   const origDay = trip.day;
   const origPilot = trip.pilot;
+  let snapped = false;
 
   function onMove(e) {
     const dayDelta = Math.round((e.clientX - startX) / cellW);
@@ -41,6 +43,7 @@ export function startMove(id, ev) {
     newDay = Math.max(1, Math.min(DAY_COUNT - trip.days + 1, newDay));
     newPilot = Math.max(1, Math.min(getPilotCount(), newPilot));
     if (newDay !== trip.day || newPilot !== trip.pilot) {
+      if (!snapped) { pushHistory(); snapped = true; } // snapshot pre-move state once
       trip.day = newDay;
       trip.pilot = newPilot;
       renderAll();
@@ -62,12 +65,14 @@ export function startResize(id, ev) {
   const cellW = cellPos.width;
   const startX = ev.clientX;
   const origDays = trip.days;
+  let snapped = false;
 
   function onMove(e) {
     const dayDelta = Math.round((e.clientX - startX) / cellW);
     let newDays = origDays + dayDelta;
     newDays = Math.max(1, Math.min(DAY_COUNT - trip.day + 1, newDays));
     if (newDays !== trip.days) {
+      if (!snapped) { pushHistory(); snapped = true; } // snapshot pre-resize state once
       trip.days = newDays;
       renderAll();
     }
@@ -98,6 +103,7 @@ export function initInteractions() {
     const cell = pointToCell(e.clientX, e.clientY);
     if (!cell) return;
     const day = Math.max(1, Math.min(DAY_COUNT - payload.days + 1, cell.day));
+    pushHistory();
     const id = addTrip({
       type: payload.type || 'trip',
       label: payload.label,
@@ -122,9 +128,19 @@ export function initInteractions() {
 
   // -------- Selection keyboard handler --------
   document.addEventListener('keydown', e => {
+    const tag = (e.target && e.target.tagName) || '';
+    const inField = tag === 'INPUT' || tag === 'TEXTAREA';
+
+    // Undo: Ctrl+Z / Cmd+Z (ignore while typing in an input so the field's own undo works)
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+      if (inField) return;
+      e.preventDefault();
+      if (undo()) { renderAll(); updateToolbar(); }
+      return;
+    }
+
     if ((e.key === 'Delete' || e.key === 'Backspace') && getSelectedId() != null) {
-      const tag = (e.target && e.target.tagName) || '';
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (inField) return;
       e.preventDefault();
       deleteSelected();
     }
