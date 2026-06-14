@@ -1,9 +1,10 @@
 // js/interactions.js — pointer/keyboard interactions: create (drop), move, resize, select, delete.
 import { DAY_COUNT } from './config.js';
-import { getTrips, getSelectedId, setSelectedId, removeTrip, addTrip, getPilotCount, pushHistory, undo } from './store.js';
+import { getTrips, getSelectedId, setSelectedId, removeTrip, addTrip, getPilotCount, pushHistory, undo, removeBankTrip, addBankTrip } from './store.js';
 import { renderAll } from './render.js';
 import { getCellPos, pointToCell } from './grid.js';
 import { updateToolbar } from './toolbar.js';
+import { isPointOverBank, setBankDropActive } from './bank.js';
 
 const gridEl = document.getElementById('grid');
 
@@ -36,6 +37,9 @@ export function startMove(id, ev) {
   let snapped = false;
 
   function onMove(e) {
+    const overBank = isPointOverBank(e.clientX, e.clientY);
+    setBankDropActive(overBank);
+    if (overBank) return; // hovering the bank: hold position, we'll un-assign on drop
     const dayDelta = Math.round((e.clientX - startX) / cellW);
     const pilotDelta = Math.round((e.clientY - startY) / cellH);
     let newDay = origDay + dayDelta;
@@ -49,9 +53,22 @@ export function startMove(id, ev) {
       renderAll();
     }
   }
-  function onUp() {
+  function onUp(e) {
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onUp);
+    setBankDropActive(false);
+    // Dropped over the bank → un-assign the trip (grid → bank)
+    if (isPointOverBank(e.clientX, e.clientY)) {
+      if (!snapped) pushHistory();
+      removeTrip(trip.id);
+      addBankTrip({
+        type: trip.type, label: trip.label, days: trip.days,
+        hoursPerDay: trip.hoursPerDay, color: trip.color, dh: trip.dh,
+      });
+      setSelectedId(null);
+      renderAll();
+      updateToolbar();
+    }
   }
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onUp);
@@ -98,12 +115,13 @@ export function initInteractions() {
     if (!data) return;
     let payload;
     try { payload = JSON.parse(data); } catch { return; }
-    if (payload.kind !== 'new') return;
+    if (payload.kind !== 'new' && payload.kind !== 'bank') return;
 
     const cell = pointToCell(e.clientX, e.clientY);
     if (!cell) return;
     const day = Math.max(1, Math.min(DAY_COUNT - payload.days + 1, cell.day));
     pushHistory();
+    if (payload.kind === 'bank') removeBankTrip(payload.id); // move out of the bank
     const id = addTrip({
       type: payload.type || 'trip',
       label: payload.label,
@@ -111,7 +129,8 @@ export function initInteractions() {
       pilot: cell.pilot, day,
       days: payload.days,
       hoursPerDay: payload.hoursPerDay,
-      color: payload.color
+      color: payload.color,
+      dh: payload.dh
     });
     selectTrip(id);
   });

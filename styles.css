@@ -7,7 +7,15 @@
     color: #1f2937;
   }
   header { margin-bottom: 14px; }
-  h1 { font-size: 18px; margin: 0 0 4px 0; font-weight: 600; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .retro-logo { width: 38px; height: 38px; flex: none; }
+  h1 {
+    font-size: 21px; margin: 0; font-weight: 700;
+    font-family: 'Courier New', ui-monospace, monospace; letter-spacing: 0.5px;
+    color: #111827;
+  }
+  h1 .cursor { color: #0e7490; animation: blink 1.05s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
   .subtitle { font-size: 12.5px; color: #6b7280; }
   .subtitle kbd {
     background: #e5e7eb; border-radius: 3px; padding: 1px 5px;
@@ -40,6 +48,8 @@
   }
   .controls .build-btn:hover { background: #4338ca; }
   .controls .build-btn:active { transform: translateY(1px); }
+  .controls .build-btn-intl { background: #2563eb; }
+  .controls .build-btn-intl:hover { background: #1d4ed8; }
   .controls .divider-v {
     width: 1px; height: 24px; background: #e5e7eb;
   }
@@ -124,6 +134,72 @@
     );
     background-size: 8px 8px;
   }
+  /* Trip Bank — configurable, draggable both ways */
+  .bank {
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 14px 18px; margin-top: 14px; margin-bottom: 90px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .bank.drop-active {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79,70,229,0.25);
+  }
+  .bank-head {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .bank-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #6b7280; font-weight: 600;
+  }
+  .bank-config {
+    display: flex; align-items: center; flex-wrap: wrap;
+    flex: 1; min-width: 0;
+  }
+  .bank-col {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 12px;
+  }
+  .bank-col:not(:last-child) { border-right: 1px solid #e5e7eb; }
+  .bank-col-dot {
+    width: 10px; height: 10px; border-radius: 3px; flex: none;
+  }
+  .bank-col-label {
+    font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap;
+  }
+  .bank-col-count {
+    width: 46px; text-align: center;
+    border: 1px solid #d1d5db; border-radius: 5px; padding: 3px 4px;
+    font-size: 12px; font-weight: 600; color: #111827;
+  }
+  .bank-clear-btn {
+    border: 1px solid #d1d5db; background: #f9fafb; color: #374151;
+    border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .bank-clear-btn:hover { background: #f3f4f6; }
+  .bank-bars {
+    display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px;
+  }
+  .bank-empty {
+    color: #9ca3af; font-size: 12px; font-style: italic;
+  }
+  .bank-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 30px; border-radius: 5px; padding: 0 6px 0 12px;
+    color: white; font-size: 12px; font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    cursor: grab; white-space: nowrap;
+  }
+  .bank-item:active { cursor: grabbing; }
+  .bank-item-label { user-select: none; }
+  .bank-remove {
+    width: 20px; height: 20px; border-radius: 4px; padding: 0;
+    border: none; background: rgba(0,0,0,0.18); color: white;
+    font-size: 15px; line-height: 1; cursor: pointer;
+  }
+  .bank-remove:hover { background: rgba(0,0,0,0.32); }
   @keyframes poolIn {
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: none; }
@@ -283,13 +359,29 @@
     position: absolute; top: 0; left: 0;
     pointer-events: none;
   }
+  .day-head { cursor: pointer; }
+  .day-head.bid-start { background: #111827; color: #fff; }
+  .bid-divider {
+    position: absolute; width: 3px;
+    background: #111827; z-index: 6; pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.55);
+  }
+  .bid-shade {
+    position: absolute; pointer-events: none;
+    background:
+      repeating-linear-gradient(45deg, rgba(17,24,39,0.06) 0 6px, rgba(17,24,39,0) 6px 12px),
+      rgba(17,24,39,0.05);
+  }
   .trip {
     position: absolute; height: 28px; border-radius: 5px;
     cursor: grab; pointer-events: auto;
     box-shadow: 0 1px 3px rgba(0,0,0,0.18);
     display: flex; align-items: center; padding: 0 10px;
     color: white; font-size: 12px; font-weight: 600;
-    user-select: none; overflow: hidden; white-space: nowrap;
+    user-select: none; overflow: visible; white-space: nowrap;
+  }
+  .trip-label {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
   }
   .trip:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.22); }
   .trip:active { cursor: grabbing; }
@@ -393,6 +485,21 @@
     cursor: ew-resize;
   }
   .trip .resize-handle:hover { background: rgba(0,0,0,0.18); }
+  .dh-plane {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-size: 13px; line-height: 1; pointer-events: none;
+    text-shadow: 0 0 2px rgba(255,255,255,0.9);
+  }
+  /* Sit just outside the bar ends; nose points outward */
+  .dh-plane.dh-front { right: 100%; margin-right: 3px; transform: translateY(-50%) scaleX(-1); }
+  .dh-plane.dh-back { left: 100%; margin-left: 3px; }
+  /* Thin fixed-color strip marking the deadhead end of the bar */
+  .dh-strip {
+    position: absolute; top: 0; bottom: 0; width: 5px;
+    background: #1f2937; pointer-events: none;
+  }
+  .dh-strip.dh-front { left: 0; border-radius: 5px 0 0 5px; }
+  .dh-strip.dh-back { right: 0; border-radius: 0 5px 5px 0; }
 
   /* Floating toolbar */
   .toolbar {
@@ -426,6 +533,16 @@
   .delete-btn:hover { background: #fecaca; }
   .hpd-group { display: none; align-items: center; gap: 8px; }
   .hpd-group.visible { display: flex; }
+  .dh-group { display: none; align-items: center; gap: 8px; }
+  .dh-group.visible { display: flex; }
+  .dh-btns { display: inline-flex; gap: 4px; }
+  .dh-btn {
+    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    border-radius: 6px; padding: 5px 9px; font-size: 11.5px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .dh-btn:hover { background: #f3f4f6; }
+  .dh-btn.active { background: #111827; color: #fff; border-color: #111827; }
   .hpd-group input {
     width: 64px; padding: 5px 8px; border: 1px solid #d1d5db;
     border-radius: 5px; font-size: 13px; font-family: inherit;
@@ -435,3 +552,92 @@
     outline: none; border-color: #4f46e5;
     box-shadow: 0 0 0 2px #c7d2fe;
   }
+
+  /* Annotate toggle button */
+  .annotate-btn {
+    background: #ecfeff; color: #155e75; border: 1px solid #a5f3fc;
+    border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+  .annotate-btn:hover { background: #cffafe; }
+  .annotate-btn.active { background: #0e7490; color: #fff; border-color: #0e7490; }
+
+  /* Scenario toggle button */
+  .scenario-btn {
+    background: #f9fafb; color: #374151; border: 1px solid #d1d5db;
+    border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+  .scenario-btn:hover { background: #f3f4f6; }
+  .scenario-btn.active { background: #111827; color: #fff; border-color: #111827; }
+
+  /* Scenario description panel (toggled by the Scenario button) */
+  .scenario {
+    display: none; flex-direction: column; gap: 6px;
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .scenario.open { display: flex; }
+  .scenario-title {
+    border: none; font-size: 15px; font-weight: 700; color: #111827;
+    padding: 2px 0;
+  }
+  .scenario-title:focus { outline: none; }
+  .scenario-desc {
+    border: 1px solid #e5e7eb; border-radius: 6px; padding: 6px 8px;
+    font-family: inherit; font-size: 13px; color: #374151; resize: vertical;
+  }
+  .scenario-desc:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }
+
+  /* Annotation overlay (free-floating over the page) */
+  .annotate-layer {
+    position: absolute; top: 0; left: 0;
+    pointer-events: none; z-index: 50;
+  }
+  .annotate-layer.active { pointer-events: auto; cursor: crosshair; }
+  .annotate-layer svg { position: absolute; top: 0; left: 0; overflow: visible; }
+  .annotate-notes { position: absolute; top: 0; left: 0; }
+  .annotate-note {
+    position: absolute; width: auto; min-height: 40px;
+    background: #fffbeb; border: 1px solid #f59e0b; border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); pointer-events: none;
+    display: flex; flex-direction: column;
+  }
+  .annotate-layer.active .annotate-note { pointer-events: auto; }
+  .anno-hit { pointer-events: none; }
+  .annotate-layer.active .anno-hit { pointer-events: all; cursor: move; }
+  .annotate-note.selected { box-shadow: 0 0 0 2px #1d4ed8, 0 2px 8px rgba(0,0,0,0.15); }
+  .annotate-note-handle {
+    height: 14px; background: rgba(0,0,0,0.06); cursor: move;
+    border-radius: 6px 6px 0 0;
+  }
+  .annotate-note textarea {
+    border: none; background: transparent; resize: both; overflow: auto;
+    font-family: inherit; font-size: 12.5px; color: #111827;
+    padding: 6px 8px; width: 180px; min-width: 120px; min-height: 40px; outline: none;
+  }
+  /* Annotation toolbar (tool palette) */
+  .annotate-toolbar {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    display: none; align-items: center; gap: 6px; z-index: 60;
+    background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 8px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .annotate-toolbar.visible { display: flex; }
+  .atb-tool, .atb-btn {
+    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    border-radius: 6px; padding: 6px 10px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer;
+  }
+  .atb-tool:hover, .atb-btn:hover { background: #f3f4f6; }
+  .atb-tool.active { background: #0e7490; color: #fff; border-color: #0e7490; }
+  .atb-done { background: #111827; color: #fff; border-color: #111827; }
+  .atb-sep { width: 1px; height: 24px; background: #e5e7eb; }
+  .atb-colors { display: inline-flex; gap: 4px; }
+  .atb-color {
+    width: 22px; height: 22px; border-radius: 5px; cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .atb-color.active { border-color: #111827; }
+  .annotate-pin-num { font-size: 11px; font-weight: 700; fill: #fff; }

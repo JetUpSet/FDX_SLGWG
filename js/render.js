@@ -1,8 +1,9 @@
 // js/render.js — projects store state onto the DOM (the trip bars, pool, credit-hour badges).
-import { BAR_H } from './config.js';
+import { BAR_H, DH_PLANE } from './config.js';
 import { fmtCH } from './format.js';
-import { getTrips, getSelectedId, getPilotCount } from './store.js';
-import { getCellPos, getTripLayer } from './grid.js';
+import { getTrips, getSelectedId, getPilotCount, getBidStartDay } from './store.js';
+import { getCellPos, getTripLayer, renderBidDivider } from './grid.js';
+import { renderBank } from './bank.js';
 
 let handlers = { onSelect() {}, onMove() {}, onResize() {} };
 export function setRenderHandlers(h) { handlers = { ...handlers, ...h }; }
@@ -29,6 +30,8 @@ export function renderAll() {
   visibleTrips.filter(t => OVERLAY_TYPES.has(t.type)).forEach(renderTrip);
   updateCreditHours();
   renderPool();
+  renderBank();
+  renderBidDivider();
 }
 
 function formatTripLabel(t) {
@@ -48,6 +51,20 @@ function formatTripLabel(t) {
     : `${prefix}${t.days}d · ${fmtCH(ch)}`;
 }
 
+function makePlane(side, color) {
+  const el = document.createElement('span');
+  el.className = 'dh-plane dh-' + side;
+  el.textContent = DH_PLANE;
+  el.style.color = color;
+  return el;
+}
+
+function makeStrip(side) {
+  const el = document.createElement('span');
+  el.className = 'dh-strip dh-' + side;
+  return el;
+}
+
 function renderTrip(t) {
   const pos = getCellPos(t.pilot, t.day);
   if (!pos) return;
@@ -59,8 +76,25 @@ function renderTrip(t) {
   el.style.left = pos.left + 'px';
   el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
   el.style.width = (t.days * pos.width - 2) + 'px';
-  if (!OVERLAY_TYPES.has(t.type)) el.textContent = formatTripLabel(t);
+  if (!OVERLAY_TYPES.has(t.type)) {
+    const lbl = document.createElement('span');
+    lbl.className = 'trip-label';
+    lbl.textContent = formatTripLabel(t);
+    el.appendChild(lbl);
+  }
   el.dataset.id = t.id;
+
+  // Deadhead planes: front (just before the start), back (just after the end), or both.
+  if (!OVERLAY_TYPES.has(t.type) && t.dh && t.dh !== 'none') {
+    if (t.dh === 'front' || t.dh === 'double') {
+      el.appendChild(makeStrip('front'));
+      el.appendChild(makePlane('front', t.color));
+    }
+    if (t.dh === 'back' || t.dh === 'double') {
+      el.appendChild(makeStrip('back'));
+      el.appendChild(makePlane('back', t.color));
+    }
+  }
 
   const handle = document.createElement('div');
   handle.className = 'resize-handle';
@@ -120,11 +154,19 @@ function updateCreditHours() {
     badge.textContent = '0:00';
     badge.classList.add('zero');
   }
-  // Sum CH per pilot (skip trips that have been moved into the pool)
+  // Sum CH per pilot (skip trips that have been moved into the pool).
+  // Days before the bid-month start earn no credit (they're carry-over).
+  const start = getBidStartDay();
+  const countedDays = t => {
+    if (!start) return t.days;
+    const last = t.day + t.days - 1;
+    if (last < start) return 0;
+    return last - Math.max(t.day, start) + 1;
+  };
   const totals = {};
   getTrips().forEach(t => {
     if (t.inPool) return;
-    totals[t.pilot] = (totals[t.pilot] || 0) + t.days * t.hoursPerDay;
+    totals[t.pilot] = (totals[t.pilot] || 0) + countedDays(t) * t.hoursPerDay;
   });
   Object.entries(totals).forEach(([pilot, ch]) => {
     const badge = document.querySelector(`.ch-badge[data-ch-for="${pilot}"]`);

@@ -2,12 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>SLG Visualization</title>
+<title>Visual_SLG</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header>
-  <h1>SLG Visualization</h1>
+  <div class="brand">
+    <svg class="retro-logo" viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="13" y="33" width="14" height="3" rx="1" fill="#9ca3af"/>
+      <rect x="17" y="29.5" width="6" height="4" fill="#b8b0a0"/>
+      <rect x="4" y="5" width="32" height="26" rx="3" fill="#d9cdb8" stroke="#8a8170" stroke-width="1.5"/>
+      <rect x="7.5" y="8" width="25" height="17" rx="1.5" fill="#0b1f17"/>
+      <rect x="9.5" y="10.5" width="12" height="1.6" fill="#34d399"/>
+      <rect x="9.5" y="13.5" width="16" height="1.6" fill="#34d399" opacity="0.8"/>
+      <rect x="9.5" y="16.5" width="9" height="1.6" fill="#34d399" opacity="0.6"/>
+      <rect x="20" y="16.5" width="3" height="1.6" fill="#a7f3d0"/>
+      <circle cx="31" cy="28" r="1.2" fill="#ef4444"/>
+    </svg>
+    <h1>Visual_SLG<span class="cursor">▌</span></h1>
+  </div>
   <div class="subtitle">
     Drag a trip from the palette onto the grid &middot; drag bars to move them &middot;
     drag the right edge to resize &middot; click a trip to recolor or delete
@@ -21,9 +34,18 @@
   <span class="controls-label">Randomizer</span>
   <label>Min CH <input type="number" id="minCh" value="68" min="0" max="200" step="1"></label>
   <label>Max CH <input type="number" id="maxCh" value="78" min="0" max="200" step="1"></label>
-  <button class="build-btn" id="randomizeBtn">Build random schedule</button>
+  <button class="build-btn" id="randomizeBtn">Build domestic</button>
+  <button class="build-btn build-btn-intl" id="intlRandomizeBtn">Build international</button>
   <div class="divider-v"></div>
   <button class="feasibility-btn" id="feasibilityBtn">Feasibility</button>
+  <div class="divider-v"></div>
+  <button class="scenario-btn" id="scenarioBtn">Scenario</button>
+  <button class="annotate-btn" id="annotateBtn">Annotate</button>
+</div>
+
+<div class="scenario" id="scenario">
+  <input class="scenario-title" id="scenarioTitle" placeholder="Scenario title…">
+  <textarea class="scenario-desc" id="scenarioDesc" rows="2" placeholder="Describe the scenario you're explaining…"></textarea>
 </div>
 
 <div class="feasibility-banner" id="feasibilityBanner"></div>
@@ -41,6 +63,15 @@
   <div class="pool-bars" id="poolBars"></div>
 </div>
 
+<div class="bank" id="tripBank">
+  <div class="bank-head">
+    <span class="bank-title">Trip Bank</span>
+    <div class="bank-config" id="bankConfig"></div>
+    <button class="bank-clear-btn" id="bankClearBtn">Clear bank</button>
+  </div>
+  <div class="bank-bars" id="bankBars"></div>
+</div>
+
 <div class="toolbar" id="toolbar">
   <div class="hpd-group" id="hpdGroup">
     <span class="label">Hours/day</span>
@@ -50,7 +81,31 @@
   <span class="label">Color</span>
   <div class="swatches" id="swatches"></div>
   <div class="divider"></div>
+  <div class="dh-group" id="dhGroup">
+    <span class="label">DH</span>
+    <div class="dh-btns" id="dhBtns"></div>
+    <div class="divider"></div>
+  </div>
   <button class="delete-btn" id="deleteBtn">Delete</button>
+</div>
+
+<div class="annotate-layer" id="annotateLayer">
+  <svg id="annotateSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="annotate-notes" id="annotateNotes"></div>
+</div>
+
+<div class="annotate-toolbar" id="annotateToolbar">
+  <button class="atb-tool" data-tool="select" title="Select / move">Select</button>
+  <button class="atb-tool" data-tool="note" title="Text note">Note</button>
+  <button class="atb-tool" data-tool="arrow" title="Arrow">Arrow</button>
+  <button class="atb-tool" data-tool="pin" title="Pin">Pin</button>
+  <button class="atb-tool" data-tool="pen" title="Freehand pen">Pen</button>
+  <span class="atb-sep"></span>
+  <div class="atb-colors" id="atbColors"></div>
+  <span class="atb-sep"></span>
+  <button class="atb-btn" id="atbDelete" title="Delete selected">Delete</button>
+  <button class="atb-btn" id="atbClear" title="Clear all annotations">Clear</button>
+  <button class="atb-btn atb-done" id="atbDone" title="Exit annotate mode">Done</button>
 </div>
 
 <script type="module" src="js/main.js"></script>
