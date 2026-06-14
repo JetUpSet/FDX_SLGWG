@@ -7,19 +7,22 @@
 </head>
 <body>
 <header>
-  <div class="brand">
-    <svg class="retro-logo" viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="13" y="33" width="14" height="3" rx="1" fill="#9ca3af"/>
-      <rect x="17" y="29.5" width="6" height="4" fill="#b8b0a0"/>
-      <rect x="4" y="5" width="32" height="26" rx="3" fill="#d9cdb8" stroke="#8a8170" stroke-width="1.5"/>
-      <rect x="7.5" y="8" width="25" height="17" rx="1.5" fill="#0b1f17"/>
-      <rect x="9.5" y="10.5" width="12" height="1.6" fill="#34d399"/>
-      <rect x="9.5" y="13.5" width="16" height="1.6" fill="#34d399" opacity="0.8"/>
-      <rect x="9.5" y="16.5" width="9" height="1.6" fill="#34d399" opacity="0.6"/>
-      <rect x="20" y="16.5" width="3" height="1.6" fill="#a7f3d0"/>
-      <circle cx="31" cy="28" r="1.2" fill="#ef4444"/>
-    </svg>
-    <h1>Visual_SLG<span class="cursor">▌</span></h1>
+  <div class="header-row">
+    <div class="brand">
+      <svg class="retro-logo" viewBox="0 0 40 40" width="40" height="40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="13" y="33" width="14" height="3" rx="1" fill="#9ca3af"/>
+        <rect x="17" y="29.5" width="6" height="4" fill="#b8b0a0"/>
+        <rect x="4" y="5" width="32" height="26" rx="3" fill="#d9cdb8" stroke="#8a8170" stroke-width="1.5"/>
+        <rect x="7.5" y="8" width="25" height="17" rx="1.5" fill="#0b1f17"/>
+        <rect x="9.5" y="10.5" width="12" height="1.6" fill="#34d399"/>
+        <rect x="9.5" y="13.5" width="16" height="1.6" fill="#34d399" opacity="0.8"/>
+        <rect x="9.5" y="16.5" width="9" height="1.6" fill="#34d399" opacity="0.6"/>
+        <rect x="20" y="16.5" width="3" height="1.6" fill="#a7f3d0"/>
+        <circle cx="31" cy="28" r="1.2" fill="#ef4444"/>
+      </svg>
+      <h1>Visual_SLG<span class="cursor">▌</span></h1>
+    </div>
+    <button class="help-btn" id="helpBtn" title="Help" aria-label="Help">?</button>
   </div>
   <div class="subtitle">
     Drag a trip from the palette onto the grid &middot; drag bars to move them &middot;
@@ -106,6 +109,48 @@
   <button class="atb-btn" id="atbDelete" title="Delete selected">Delete</button>
   <button class="atb-btn" id="atbClear" title="Clear all annotations">Clear</button>
   <button class="atb-btn atb-done" id="atbDone" title="Exit annotate mode">Done</button>
+</div>
+
+<div class="help-modal" id="helpModal" hidden>
+  <div class="vb-window" role="dialog" aria-label="About Visual_SLG">
+    <div class="vb-titlebar">
+      <svg class="vb-title-icon" viewBox="0 0 40 40" width="16" height="16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="4" y="5" width="32" height="26" rx="2" fill="#d9cdb8" stroke="#5c574b" stroke-width="2"/>
+        <rect x="7.5" y="8" width="25" height="17" fill="#0b1f17"/>
+        <rect x="9.5" y="11" width="14" height="2" fill="#34d399"/>
+        <rect x="9.5" y="15" width="10" height="2" fill="#34d399"/>
+      </svg>
+      <span class="vb-title">About Visual_SLG</span>
+      <button class="vb-close" id="helpClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="vb-body">
+      <div class="vb-about">
+        <div class="vb-version">Visual_SLG <span>v1.0</span> — Secondary Line visualizer</div>
+        <p class="vb-blurb">Born from one too many Microsoft Paint demos in Teams.</p>
+      </div>
+      <div class="vb-fieldset">
+        <div class="vb-legend">Quick guide</div>
+        <ul>
+          <li><b>Trips:</b> drag from the palette onto the grid; drag to move, drag the right edge to resize, click to recolor / set deadhead / delete (<kbd>Delete</kbd>).</li>
+          <li><b>Undo:</b> <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd>.</li>
+          <li><b>Bid month:</b> click a day header to mark the start; days left of the line are carry-over (no credit).</li>
+          <li><b>Trip Bank:</b> set counts to stage bars, drag them onto the grid and back.</li>
+          <li><b>Randomizers:</b> set Min/Max CH, then Build domestic or international.</li>
+          <li><b>Annotate:</b> notes, arrows, pins, pen; Scenario panel for write-ups.</li>
+        </ul>
+      </div>
+      <div class="vb-fieldset">
+        <div class="vb-legend">Credits</div>
+        <p>Thanks to <b>AZ</b> and <b>TM</b> — the best teammates on the bigger mission.</p>
+        <p>Our Purple Crew: <b>MP</b>, <b>SB</b>, <b>MF</b>.</p>
+        <p>Shoutout to the partner dev crew: <b>PK</b>, <b>HF</b>, <b>LA</b>, <b>WH</b>, <b>GK</b>, and the rest.</p>
+        <p class="vb-author">Made by Nik.</p>
+      </div>
+      <div class="vb-buttons">
+        <button class="vb-btn" id="helpOk">OK</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="js/main.js"></script>
