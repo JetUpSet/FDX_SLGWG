@@ -59,3 +59,13 @@ import { getTrips, setTrips, getPilotCount, setPilotCount, setSelectedId } from 
 
   // Reposition trips if the window resizes (cell sizes shouldn't change but be safe).
   window.addEventListener('resize', renderAll);
+
+  // Help / About dialog
+  const helpModal = document.getElementById('helpModal');
+  const openHelp = () => { helpModal.hidden = false; };
+  const closeHelp = () => { helpModal.hidden = true; };
+  document.getElementById('helpBtn').addEventListener('click', openHelp);
+  document.getElementById('helpClose').addEventListener('click', closeHelp);
+  document.getElementById('helpOk').addEventListener('click', closeHelp);
+  helpModal.addEventListener('click', e => { if (e.target === helpModal) closeHelp(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !helpModal.hidden) closeHelp(); });
