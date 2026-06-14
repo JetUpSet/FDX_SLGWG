@@ -24,6 +24,14 @@
   <button class="build-btn" id="randomizeBtn">Build random schedule</button>
   <div class="divider-v"></div>
   <button class="feasibility-btn" id="feasibilityBtn">Feasibility</button>
+  <div class="divider-v"></div>
+  <button class="scenario-btn" id="scenarioBtn">Scenario</button>
+  <button class="annotate-btn" id="annotateBtn">Annotate</button>
+</div>
+
+<div class="scenario" id="scenario">
+  <input class="scenario-title" id="scenarioTitle" placeholder="Scenario title…">
+  <textarea class="scenario-desc" id="scenarioDesc" rows="2" placeholder="Describe the scenario you're explaining…"></textarea>
 </div>
 
 <div class="feasibility-banner" id="feasibilityBanner"></div>
@@ -65,6 +73,25 @@
     <div class="divider"></div>
   </div>
   <button class="delete-btn" id="deleteBtn">Delete</button>
+</div>
+
+<div class="annotate-layer" id="annotateLayer">
+  <svg id="annotateSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="annotate-notes" id="annotateNotes"></div>
+</div>
+
+<div class="annotate-toolbar" id="annotateToolbar">
+  <button class="atb-tool" data-tool="select" title="Select / move">Select</button>
+  <button class="atb-tool" data-tool="note" title="Text note">Note</button>
+  <button class="atb-tool" data-tool="arrow" title="Arrow">Arrow</button>
+  <button class="atb-tool" data-tool="pin" title="Pin">Pin</button>
+  <button class="atb-tool" data-tool="pen" title="Freehand pen">Pen</button>
+  <span class="atb-sep"></span>
+  <div class="atb-colors" id="atbColors"></div>
+  <span class="atb-sep"></span>
+  <button class="atb-btn" id="atbDelete" title="Delete selected">Delete</button>
+  <button class="atb-btn" id="atbClear" title="Clear all annotations">Clear</button>
+  <button class="atb-btn atb-done" id="atbDone" title="Exit annotate mode">Done</button>
 </div>
 
 <script type="module" src="js/main.js"></script>
