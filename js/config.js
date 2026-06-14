@@ -44,3 +44,11 @@ export const WORK_PERIOD_TEMPLATES = [
 export const DEPARTURE_TEMPLATES = [
   { label: 'Departure', days: 3, hoursPerDay: 0, color: '#1d4ed8' },
 ];
+// Deadhead markers — a little plane at the front and/or back of a trip bar.
+export const DH_PLANE = '✈'; // ✈
+export const DH_OPTIONS = [
+  { id: 'none',   title: 'No DH' },
+  { id: 'front',  title: 'Front-End DH' },
+  { id: 'back',   title: 'Back-End DH' },
+  { id: 'double', title: 'Double DH' },
+];

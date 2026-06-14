@@ -15,7 +15,7 @@ import { getTrips, setTrips, getPilotCount, setPilotCount, setSelectedId } from 
   initBank();
 
   // -------- Build grid --------
-  setGridHandlers({ onSenClick: handleFeasibilitySenClick });
+  setGridHandlers({ onSenClick: handleFeasibilitySenClick, onBidChange: renderAll });
   setRenderHandlers({ onSelect: selectTrip, onMove: startMove, onResize: startResize });
   buildGrid();
 

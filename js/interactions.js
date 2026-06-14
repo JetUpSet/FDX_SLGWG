@@ -63,7 +63,7 @@ export function startMove(id, ev) {
       removeTrip(trip.id);
       addBankTrip({
         type: trip.type, label: trip.label, days: trip.days,
-        hoursPerDay: trip.hoursPerDay, color: trip.color,
+        hoursPerDay: trip.hoursPerDay, color: trip.color, dh: trip.dh,
       });
       setSelectedId(null);
       renderAll();
@@ -129,7 +129,8 @@ export function initInteractions() {
       pilot: cell.pilot, day,
       days: payload.days,
       hoursPerDay: payload.hoursPerDay,
-      color: payload.color
+      color: payload.color,
+      dh: payload.dh
     });
     selectTrip(id);
   });

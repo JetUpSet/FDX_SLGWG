@@ -145,7 +145,7 @@ function buildBankItem(t) {
     e.dataTransfer.setData('text/plain', JSON.stringify({
       kind: 'bank', id: t.id,
       type: t.type, label: t.label, days: t.days,
-      hoursPerDay: t.hoursPerDay, color: t.color,
+      hoursPerDay: t.hoursPerDay, color: t.color, dh: t.dh,
     }));
     e.dataTransfer.effectAllowed = 'copyMove'; // must include 'copy' to match the grid's dropEffect
   });

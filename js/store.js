@@ -56,3 +56,8 @@ export function setSelectedId(id) { selectedId = id; }
 
 export function getPilotCount() { return pilotCount; }
 export function setPilotCount(n) { pilotCount = n; }
+
+// ---- Bid-month start (day the bid month begins) ----
+let bidStartDay = null;
+export function getBidStartDay() { return bidStartDay; }
+export function setBidStartDay(day) { bidStartDay = day; }
