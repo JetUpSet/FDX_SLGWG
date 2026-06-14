@@ -9,9 +9,10 @@ import {
   LEAVE_TEMPLATES,
   ABSENCE_TEMPLATES,
   WORK_PERIOD_TEMPLATES,
+  DEPARTURE_TEMPLATES,
 } from './config.js';
 import { fmtCH } from './format.js';
-import { getTrips, clearTrips, setSelectedId } from './store.js';
+import { getTrips, clearTrips, setSelectedId, pushHistory } from './store.js';
 import { renderAll } from './render.js';
 import { updateToolbar } from './toolbar.js';
 
@@ -191,7 +192,6 @@ export function initPalette() {
   WORK_PERIOD_TEMPLATES.forEach(t => {
     const div = document.createElement('div');
     div.className = 'palette-item workperiod';
-    div.style.background = t.color;
     div.draggable = true;
     div.innerHTML =
       `<span>${t.label}</span>` +
@@ -199,6 +199,30 @@ export function initPalette() {
     div.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', JSON.stringify({
         kind: 'new', type: 'workperiod', label: t.label, days: t.days,
+        hoursPerDay: t.hoursPerDay, color: t.color
+      }));
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    paletteEl.appendChild(div);
+  });
+
+  // ---- Departure section ----
+  const departureHeader = document.createElement('h2');
+  departureHeader.className = 'subsequent';
+  departureHeader.textContent = 'Departure';
+  paletteEl.appendChild(departureHeader);
+
+  DEPARTURE_TEMPLATES.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'palette-item departure';
+    div.style.background = t.color;
+    div.draggable = true;
+    div.innerHTML =
+      `<span>${t.label}</span>` +
+      `<span class="days-badge">${t.days}d</span>`;
+    div.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        kind: 'new', type: 'departure', label: t.label, days: t.days,
         hoursPerDay: t.hoursPerDay, color: t.color
       }));
       e.dataTransfer.effectAllowed = 'copy';
@@ -217,6 +241,7 @@ export function initPalette() {
   clearBtn.addEventListener('click', () => {
     if (getTrips().length === 0) return;
     if (confirm('Remove all trips from the schedule?')) {
+      pushHistory();
       clearTrips();
       setSelectedId(null);
       renderAll();

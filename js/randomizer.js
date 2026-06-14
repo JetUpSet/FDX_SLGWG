@@ -1,12 +1,13 @@
 // js/randomizer.js — builds a randomized schedule within a credit-hour range.
 import { DAY_COUNT, COLORS, RESERVE_TEMPLATES } from './config.js';
 import { randInt } from './format.js';
-import { clearTrips, addTrip, setSelectedId, getPilotCount } from './store.js';
+import { clearTrips, addTrip, setSelectedId, getPilotCount, pushHistory } from './store.js';
 import { renderAll } from './render.js';
 import { updateToolbar } from './toolbar.js';
 
 export function randomizeSchedule(minCh, maxCh) {
   if (maxCh < minCh) [minCh, maxCh] = [maxCh, minCh];
+  pushHistory(); // so a randomize can be undone
   clearTrips();
   setSelectedId(null);
 
