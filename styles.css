@@ -40,6 +40,8 @@
   }
   .controls .build-btn:hover { background: #4338ca; }
   .controls .build-btn:active { transform: translateY(1px); }
+  .controls .build-btn-intl { background: #2563eb; }
+  .controls .build-btn-intl:hover { background: #1d4ed8; }
   .controls .divider-v {
     width: 1px; height: 24px; background: #e5e7eb;
   }
