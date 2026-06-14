@@ -124,6 +124,72 @@
     );
     background-size: 8px 8px;
   }
+  /* Trip Bank — configurable, draggable both ways */
+  .bank {
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 14px 18px; margin-top: 14px; margin-bottom: 90px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .bank.drop-active {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79,70,229,0.25);
+  }
+  .bank-head {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .bank-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #6b7280; font-weight: 600;
+  }
+  .bank-config {
+    display: flex; align-items: center; flex-wrap: wrap;
+    flex: 1; min-width: 0;
+  }
+  .bank-col {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 12px;
+  }
+  .bank-col:not(:last-child) { border-right: 1px solid #e5e7eb; }
+  .bank-col-dot {
+    width: 10px; height: 10px; border-radius: 3px; flex: none;
+  }
+  .bank-col-label {
+    font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap;
+  }
+  .bank-col-count {
+    width: 46px; text-align: center;
+    border: 1px solid #d1d5db; border-radius: 5px; padding: 3px 4px;
+    font-size: 12px; font-weight: 600; color: #111827;
+  }
+  .bank-clear-btn {
+    border: 1px solid #d1d5db; background: #f9fafb; color: #374151;
+    border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .bank-clear-btn:hover { background: #f3f4f6; }
+  .bank-bars {
+    display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px;
+  }
+  .bank-empty {
+    color: #9ca3af; font-size: 12px; font-style: italic;
+  }
+  .bank-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 30px; border-radius: 5px; padding: 0 6px 0 12px;
+    color: white; font-size: 12px; font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    cursor: grab; white-space: nowrap;
+  }
+  .bank-item:active { cursor: grabbing; }
+  .bank-item-label { user-select: none; }
+  .bank-remove {
+    width: 20px; height: 20px; border-radius: 4px; padding: 0;
+    border: none; background: rgba(0,0,0,0.18); color: white;
+    font-size: 15px; line-height: 1; cursor: pointer;
+  }
+  .bank-remove:hover { background: rgba(0,0,0,0.32); }
   @keyframes poolIn {
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: none; }

@@ -3,6 +3,7 @@ import { BAR_H } from './config.js';
 import { fmtCH } from './format.js';
 import { getTrips, getSelectedId, getPilotCount } from './store.js';
 import { getCellPos, getTripLayer } from './grid.js';
+import { renderBank } from './bank.js';
 
 let handlers = { onSelect() {}, onMove() {}, onResize() {} };
 export function setRenderHandlers(h) { handlers = { ...handlers, ...h }; }
@@ -29,6 +30,7 @@ export function renderAll() {
   visibleTrips.filter(t => OVERLAY_TYPES.has(t.type)).forEach(renderTrip);
   updateCreditHours();
   renderPool();
+  renderBank();
 }
 
 function formatTripLabel(t) {

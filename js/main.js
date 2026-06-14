@@ -3,12 +3,16 @@ import { renderAll, setRenderHandlers } from './render.js';
 import { initToolbar, updateToolbar, setToolbarHandlers } from './toolbar.js';
 import { selectTrip, startMove, startResize, deleteSelected, initInteractions } from './interactions.js';
 import { initPalette } from './palette.js';
+import { initBank } from './bank.js';
 import { initRandomizer } from './randomizer.js';
 import { initFeasibility, handleFeasibilitySenClick, exitFeasibility } from './feasibility.js';
 import { getTrips, setTrips, getPilotCount, setPilotCount, setSelectedId } from './store.js';
 
   // -------- Build palette --------
   initPalette();
+
+  // -------- Trip Bank --------
+  initBank();
 
   // -------- Build grid --------
   setGridHandlers({ onSenClick: handleFeasibilitySenClick });
