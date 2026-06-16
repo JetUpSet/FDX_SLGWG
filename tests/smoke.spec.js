@@ -202,3 +202,57 @@ test('office-day absence shows and counts its 6 hours of credit', async ({ page 
   // And it lifts the pilot's monthly credit total.
   await expect(page.locator('.ch-badge[data-ch-for="1"]')).toHaveText('6:00');
 });
+
+test('resize handles are hidden until a bar is selected', async ({ page }) => {
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'trip', days: 3, hoursPerDay: 6, color: '#4f46e5'
+  }, 1, 10);
+  await page.keyboard.press('Escape'); // deselect the auto-selected bar
+
+  const bar = page.locator('.trip-layer .trip').first();
+  await expect(bar.locator('.resize-handle')).toBeHidden();
+  await expect(bar.locator('.resize-handle-left')).toBeHidden();
+
+  await bar.click();
+  await expect(bar).toHaveClass(/selected/);
+  await expect(bar.locator('.resize-handle')).toBeVisible();
+  await expect(bar.locator('.resize-handle-left')).toBeVisible();
+});
+
+test('left-edge resize moves the start day and keeps the right edge pinned', async ({ page }) => {
+  // 3-day trip at pilot 1, day 10 → right edge = day 12.
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'trip', days: 3, hoursPerDay: 6, color: '#4f46e5'
+  }, 1, 10);
+
+  const bar = page.locator('.trip-layer .trip').first();
+  await expect(bar.locator('.trip-label')).toHaveText('3d · 18:00');
+
+  const beforeBox = await bar.boundingBox();
+  const rightBefore = beforeBox.x + beforeBox.width;
+
+  const cellBox = await page.locator('td.day-cell[data-pilot="1"][data-day="1"]').boundingBox();
+  const cellW = cellBox.width;
+
+  await bar.click(); // select so the handles render
+  await expect(bar.locator('.resize-handle-left')).toBeVisible();
+
+  // Drag the left handle two columns to the left.
+  await page.evaluate((cellW) => {
+    const handle = document.querySelector('.trip.selected .resize-handle-left');
+    const r = handle.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const fire = (el, type, x, y) => el.dispatchEvent(new MouseEvent(type, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(handle, 'mousedown', cx, cy);
+    fire(window, 'mousemove', cx - 2 * cellW, cy);
+    fire(window, 'mouseup', cx - 2 * cellW, cy);
+  }, cellW);
+
+  // Grew 3 → 5 days; right edge stayed pinned; left edge moved left.
+  await expect(bar.locator('.trip-label')).toHaveText('5d · 30:00');
+  const afterBox = await bar.boundingBox();
+  expect(Math.abs((afterBox.x + afterBox.width) - rightBefore)).toBeLessThan(2);
+  expect(afterBox.x).toBeLessThan(beforeBox.x);
+});
