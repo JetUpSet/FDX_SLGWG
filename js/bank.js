@@ -124,7 +124,10 @@ function buildBankItem(t) {
 
   const label = document.createElement('span');
   label.className = 'bank-item-label';
-  label.textContent = t.label || (t.days === 1 ? '1-Day' : `${t.days}-Day`);
+  // Reserves show the bare subtype (e.g. 'RA') to match the grid chip style.
+  label.textContent = t.type === 'reserve' && t.subType
+    ? t.subType
+    : (t.label || (t.days === 1 ? '1-Day' : `${t.days}-Day`));
   item.appendChild(label);
 
   const remove = document.createElement('button');
@@ -144,7 +147,7 @@ function buildBankItem(t) {
   item.addEventListener('dragstart', e => {
     e.dataTransfer.setData('text/plain', JSON.stringify({
       kind: 'bank', id: t.id,
-      type: t.type, label: t.label, days: t.days,
+      type: t.type, label: t.label, subType: t.subType, days: t.days,
       hoursPerDay: t.hoursPerDay, color: t.color, dh: t.dh,
     }));
     e.dataTransfer.effectAllowed = 'copyMove'; // must include 'copy' to match the grid's dropEffect

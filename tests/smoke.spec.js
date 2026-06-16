@@ -256,3 +256,34 @@ test('left-edge resize moves the start day and keeps the right edge pinned', asy
   expect(Math.abs((afterBox.x + afterBox.width) - rightBefore)).toBeLessThan(2);
   expect(afterBox.x).toBeLessThan(beforeBox.x);
 });
+
+test('a reserve survives the grid -> bank round-trip with its subtype', async ({ page }) => {
+  // Drop an RA reserve on the grid.
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'reserve', subType: 'RA', days: 1, hoursPerDay: 4.75, color: '#0d9488'
+  }, 1, 5);
+  await expect(page.locator('.trip.reserve', { hasText: 'RA' })).toBeVisible();
+
+  // Drag it from the grid back into the bank (un-assign) via synthetic mouse events.
+  await page.evaluate(() => {
+    const trip = document.querySelector('.trip-layer .trip.reserve');
+    const bank = document.getElementById('tripBank');
+    const tr = trip.getBoundingClientRect(), br = bank.getBoundingClientRect();
+    const fire = (el, t, x, y) => el.dispatchEvent(new MouseEvent(t, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(trip, 'mousedown', tr.left + tr.width / 2, tr.top + tr.height / 2);
+    fire(window, 'mousemove', br.left + br.width / 2, br.top + br.height / 2);
+    fire(window, 'mouseup', br.left + br.width / 2, br.top + br.height / 2);
+  });
+
+  // The bank chip shows the subtype, and its drag payload carries it.
+  const chip = page.locator('.bank-item').first();
+  await expect(chip).toContainText('RA');
+  const payload = await chip.evaluate(el => {
+    const dt = new DataTransfer();
+    el.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
+    return dt.getData('text/plain');
+  });
+  expect(JSON.parse(payload).subType).toBe('RA');
+});
