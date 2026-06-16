@@ -39,8 +39,8 @@ test('loads with no console errors and builds the grid', async ({ page }) => {
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('palette renders all eighteen template items across expected sections', async ({ page }) => {
-  await expect(page.locator('.palette-item')).toHaveCount(18);
+test('palette renders all twenty-two template items across expected sections', async ({ page }) => {
+  await expect(page.locator('.palette-item')).toHaveCount(22);
   await expect(page.locator('.palette h2')).toContainText([
     'Trip Templates',
     'Carry Over',
@@ -50,6 +50,7 @@ test('palette renders all eighteen template items across expected sections', asy
     'Leave',
     'Absence',
     'Work Period',
+    'Departure',
   ]);
 
   for (const label of [
@@ -59,6 +60,9 @@ test('palette renders all eighteen template items across expected sections', asy
     'RET',
     'DOG',
     'JRY',
+    'OFF',
+    'OFC',
+    'SIC',
     'Work Period',
   ]) {
     await expect(page.locator('.palette-item', { hasText: label })).toBeVisible();
@@ -86,15 +90,20 @@ test('new templates drop with labels and zero-credit overlays stay visual-only',
   await expect(page.locator('.trip', { hasText: '10d · 60:00' })).toBeVisible();
   await expect(page.locator('.trip.leave', { hasText: 'MLA 3d' })).toBeVisible();
   await expect(page.locator('.trip.absence', { hasText: 'DOG 3d' })).toBeVisible();
-  await expect(page.locator('.trip.workperiod', { hasText: 'Work Period 5d' })).toBeVisible();
   await expect(page.locator('.ch-badge[data-ch-for="1"]')).toHaveText('60:00');
 
-  const renderedTexts = await page.locator('.trip').allInnerTexts();
-  expect(renderedTexts[renderedTexts.length - 1]).toBe('Work Period 5d');
+  // Work Period is an overlay bracket marker: it gets the .trip.workperiod class but
+  // carries NO inline text label (its "WOP" marker is a CSS ::after), has a transparent
+  // background, and renders on top of (after) all other bars.
+  const wop = page.locator('.trip.workperiod');
+  await expect(wop).toBeVisible();
+  await expect(wop).not.toContainText('Work Period');
+  await expect(wop).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  const wopMarker = await wop.evaluate(el => getComputedStyle(el, '::after').content);
+  expect(wopMarker).toContain('WOP');
 
-  const workPeriodOpacity = await page.locator('.trip.workperiod')
-    .evaluate(el => Number(getComputedStyle(el).opacity));
-  expect(workPeriodOpacity).toBeLessThan(1);
+  const renderedTexts = await page.locator('.trip').allInnerTexts();
+  expect(renderedTexts[renderedTexts.length - 1]).toBe('');
 });
 
 // 7: randomizer wiring. Asserts invariants, not exact output (Math.random).
@@ -180,4 +189,16 @@ test('clear all empties the grid and resets CH badges', async ({ page }) => {
   await expect(page.locator('.trip-layer .trip')).toHaveCount(0);
   const texts = await page.locator('.ch-badge').allInnerTexts();
   expect(texts.every(t => t.trim() === '0:00')).toBe(true);
+});
+
+test('office-day absence shows and counts its 6 hours of credit', async ({ page }) => {
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'absence', label: 'OFC', days: 1,
+    hoursPerDay: 6, color: '#0369a1'
+  }, 1, 1);
+
+  // Label-only absence, but because it carries hours it shows credit.
+  await expect(page.locator('.trip.absence', { hasText: 'OFC 6:00' })).toBeVisible();
+  // And it lifts the pilot's monthly credit total.
+  await expect(page.locator('.ch-badge[data-ch-for="1"]')).toHaveText('6:00');
 });

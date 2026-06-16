@@ -37,6 +37,10 @@ export function renderAll() {
 function formatTripLabel(t) {
   if (LABEL_ONLY_TYPES.has(t.type)) {
     const label = t.label || t.type;
+    if (t.hoursPerDay > 0) {
+      const ch = t.days * t.hoursPerDay;
+      return t.days === 1 ? `${label} ${fmtCH(ch)}` : `${label} ${t.days}d · ${fmtCH(ch)}`;
+    }
     return t.days === 1 ? label : `${label} ${t.days}d`;
   }
 
