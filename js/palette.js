@@ -232,7 +232,7 @@ export function initPalette() {
 
   const hint = document.createElement('div');
   hint.className = 'palette-hint';
-  hint.textContent = 'Drop a trip or carry-over onto a row. Drag the right edge to resize days; use the toolbar to change carry-over hours/day.';
+  hint.textContent = 'Drop a trip or carry-over onto a row. Click a bar to select it, then drag either edge to resize; use the toolbar to change carry-over hours/day.';
   paletteEl.appendChild(hint);
 
   const clearBtn = document.createElement('button');
