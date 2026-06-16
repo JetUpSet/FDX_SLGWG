@@ -39,8 +39,8 @@ test('loads with no console errors and builds the grid', async ({ page }) => {
   expect(errors, errors.join('\n')).toEqual([]);
 });
 
-test('palette renders all eighteen template items across expected sections', async ({ page }) => {
-  await expect(page.locator('.palette-item')).toHaveCount(18);
+test('palette renders all twenty-two template items across expected sections', async ({ page }) => {
+  await expect(page.locator('.palette-item')).toHaveCount(22);
   await expect(page.locator('.palette h2')).toContainText([
     'Trip Templates',
     'Carry Over',
@@ -50,6 +50,7 @@ test('palette renders all eighteen template items across expected sections', asy
     'Leave',
     'Absence',
     'Work Period',
+    'Departure',
   ]);
 
   for (const label of [
@@ -59,6 +60,9 @@ test('palette renders all eighteen template items across expected sections', asy
     'RET',
     'DOG',
     'JRY',
+    'OFF',
+    'OFC',
+    'SIC',
     'Work Period',
   ]) {
     await expect(page.locator('.palette-item', { hasText: label })).toBeVisible();
@@ -86,15 +90,20 @@ test('new templates drop with labels and zero-credit overlays stay visual-only',
   await expect(page.locator('.trip', { hasText: '10d · 60:00' })).toBeVisible();
   await expect(page.locator('.trip.leave', { hasText: 'MLA 3d' })).toBeVisible();
   await expect(page.locator('.trip.absence', { hasText: 'DOG 3d' })).toBeVisible();
-  await expect(page.locator('.trip.workperiod', { hasText: 'Work Period 5d' })).toBeVisible();
   await expect(page.locator('.ch-badge[data-ch-for="1"]')).toHaveText('60:00');
 
-  const renderedTexts = await page.locator('.trip').allInnerTexts();
-  expect(renderedTexts[renderedTexts.length - 1]).toBe('Work Period 5d');
+  // Work Period is an overlay bracket marker: it gets the .trip.workperiod class but
+  // carries NO inline text label (its "WOP" marker is a CSS ::after), has a transparent
+  // background, and renders on top of (after) all other bars.
+  const wop = page.locator('.trip.workperiod');
+  await expect(wop).toBeVisible();
+  await expect(wop).not.toContainText('Work Period');
+  await expect(wop).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  const wopMarker = await wop.evaluate(el => getComputedStyle(el, '::after').content);
+  expect(wopMarker).toContain('WOP');
 
-  const workPeriodOpacity = await page.locator('.trip.workperiod')
-    .evaluate(el => Number(getComputedStyle(el).opacity));
-  expect(workPeriodOpacity).toBeLessThan(1);
+  const renderedTexts = await page.locator('.trip').allInnerTexts();
+  expect(renderedTexts[renderedTexts.length - 1]).toBe('');
 });
 
 // 7: randomizer wiring. Asserts invariants, not exact output (Math.random).
@@ -180,4 +189,70 @@ test('clear all empties the grid and resets CH badges', async ({ page }) => {
   await expect(page.locator('.trip-layer .trip')).toHaveCount(0);
   const texts = await page.locator('.ch-badge').allInnerTexts();
   expect(texts.every(t => t.trim() === '0:00')).toBe(true);
+});
+
+test('office-day absence shows and counts its 6 hours of credit', async ({ page }) => {
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'absence', label: 'OFC', days: 1,
+    hoursPerDay: 6, color: '#0369a1'
+  }, 1, 1);
+
+  // Label-only absence, but because it carries hours it shows credit.
+  await expect(page.locator('.trip.absence', { hasText: 'OFC 6:00' })).toBeVisible();
+  // And it lifts the pilot's monthly credit total.
+  await expect(page.locator('.ch-badge[data-ch-for="1"]')).toHaveText('6:00');
+});
+
+test('resize handles are hidden until a bar is selected', async ({ page }) => {
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'trip', days: 3, hoursPerDay: 6, color: '#4f46e5'
+  }, 1, 10);
+  await page.keyboard.press('Escape'); // deselect the auto-selected bar
+
+  const bar = page.locator('.trip-layer .trip').first();
+  await expect(bar.locator('.resize-handle')).toBeHidden();
+  await expect(bar.locator('.resize-handle-left')).toBeHidden();
+
+  await bar.click();
+  await expect(bar).toHaveClass(/selected/);
+  await expect(bar.locator('.resize-handle')).toBeVisible();
+  await expect(bar.locator('.resize-handle-left')).toBeVisible();
+});
+
+test('left-edge resize moves the start day and keeps the right edge pinned', async ({ page }) => {
+  // 3-day trip at pilot 1, day 10 → right edge = day 12.
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'trip', days: 3, hoursPerDay: 6, color: '#4f46e5'
+  }, 1, 10);
+
+  const bar = page.locator('.trip-layer .trip').first();
+  await expect(bar.locator('.trip-label')).toHaveText('3d · 18:00');
+
+  const beforeBox = await bar.boundingBox();
+  const rightBefore = beforeBox.x + beforeBox.width;
+
+  const cellBox = await page.locator('td.day-cell[data-pilot="1"][data-day="1"]').boundingBox();
+  const cellW = cellBox.width;
+
+  await bar.click(); // select so the handles render
+  await expect(bar.locator('.resize-handle-left')).toBeVisible();
+
+  // Drag the left handle two columns to the left.
+  await page.evaluate((cellW) => {
+    const handle = document.querySelector('.trip.selected .resize-handle-left');
+    const r = handle.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const fire = (el, type, x, y) => el.dispatchEvent(new MouseEvent(type, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(handle, 'mousedown', cx, cy);
+    fire(window, 'mousemove', cx - 2 * cellW, cy);
+    fire(window, 'mouseup', cx - 2 * cellW, cy);
+  }, cellW);
+
+  // Grew 3 → 5 days; right edge stayed pinned; left edge moved left.
+  await expect(bar.locator('.trip-label')).toHaveText('5d · 30:00');
+  const afterBox = await bar.boundingBox();
+  expect(Math.abs((afterBox.x + afterBox.width) - rightBefore)).toBeLessThan(2);
+  expect(afterBox.x).toBeLessThan(beforeBox.x);
 });

@@ -547,7 +547,17 @@
     position: absolute; right: 0; top: 0; bottom: 0; width: 8px;
     cursor: ew-resize;
   }
-  .trip .resize-handle:hover { background: rgba(0,0,0,0.18); }
+  .trip .resize-handle-left {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
+    cursor: ew-resize;
+  }
+  .trip .resize-handle:hover,
+  .trip .resize-handle-left:hover { background: rgba(0,0,0,0.18); }
+  /* Handles appear only on the selected bar (keeps narrow 1-day bars movable). */
+  .trip .resize-handle,
+  .trip .resize-handle-left { display: none; }
+  .trip.selected .resize-handle,
+  .trip.selected .resize-handle-left { display: block; }
   .dh-plane {
     position: absolute; top: 50%; transform: translateY(-50%);
     font-size: 13px; line-height: 1; pointer-events: none;

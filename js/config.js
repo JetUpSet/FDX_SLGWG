@@ -37,6 +37,9 @@ export const LEAVE_TEMPLATES = [
 export const ABSENCE_TEMPLATES = [
   { label: 'DOG', days: 3, hoursPerDay: 0, color: '#be123c' },
   { label: 'JRY', days: 3, hoursPerDay: 0, color: '#c2410c' },
+  { label: 'OFF', days: 1, hoursPerDay: 0, color: '#52525b' }, // Day Off — no credit
+  { label: 'OFC', days: 1, hoursPerDay: 6, color: '#0369a1' }, // Office Day — 6 CH/day, shown
+  { label: 'SIC', days: 1, hoursPerDay: 0, color: '#15803d' }, // Sick Leave — no credit
 ];
 export const WORK_PERIOD_TEMPLATES = [
   { label: 'Work Period', days: 5, hoursPerDay: 0, color: '#111827' },

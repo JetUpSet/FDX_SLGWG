@@ -102,6 +102,37 @@ export function startResize(id, ev) {
   window.addEventListener('mouseup', onUp);
 }
 
+export function startResizeLeft(id, ev) {
+  const trip = getTrips().find(t => t.id === id);
+  if (!trip) return;
+  const cellPos = getCellPos(trip.pilot, trip.day);
+  if (!cellPos) return;
+  const cellW = cellPos.width;
+  const startX = ev.clientX;
+  const origDay = trip.day;
+  const fixedRight = trip.day + trip.days - 1; // right edge stays put
+  let snapped = false;
+
+  function onMove(e) {
+    const dayDelta = Math.round((e.clientX - startX) / cellW);
+    let newDay = origDay + dayDelta;
+    newDay = Math.max(1, Math.min(fixedRight, newDay)); // clamp: day >= 1, min 1 day
+    const newDays = fixedRight - newDay + 1;
+    if (newDay !== trip.day || newDays !== trip.days) {
+      if (!snapped) { pushHistory(); snapped = true; } // snapshot pre-resize state once
+      trip.day = newDay;
+      trip.days = newDays;
+      renderAll();
+    }
+  }
+  function onUp() {
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onUp);
+  }
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+}
+
 export function initInteractions() {
   // -------- Drop from palette --------
   gridEl.addEventListener('dragover', e => {

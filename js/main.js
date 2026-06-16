@@ -1,7 +1,7 @@
 import { buildGrid, setGridHandlers } from './grid.js';
 import { renderAll, setRenderHandlers } from './render.js';
 import { initToolbar, updateToolbar, setToolbarHandlers } from './toolbar.js';
-import { selectTrip, startMove, startResize, deleteSelected, initInteractions } from './interactions.js';
+import { selectTrip, startMove, startResize, startResizeLeft, deleteSelected, initInteractions } from './interactions.js';
 import { initPalette } from './palette.js';
 import { initBank } from './bank.js';
 import { initAnnotate } from './annotate.js';
@@ -20,7 +20,7 @@ import { getTrips, setTrips, getPilotCount, setPilotCount, setSelectedId } from 
 
   // -------- Build grid --------
   setGridHandlers({ onSenClick: handleFeasibilitySenClick, onBidChange: renderAll });
-  setRenderHandlers({ onSelect: selectTrip, onMove: startMove, onResize: startResize });
+  setRenderHandlers({ onSelect: selectTrip, onMove: startMove, onResize: startResize, onResizeLeft: startResizeLeft });
   buildGrid();
 
   // -------- Toolbar --------

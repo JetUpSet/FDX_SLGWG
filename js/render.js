@@ -5,7 +5,7 @@ import { getTrips, getSelectedId, getPilotCount, getBidStartDay } from './store.
 import { getCellPos, getTripLayer, renderBidDivider } from './grid.js';
 import { renderBank } from './bank.js';
 
-let handlers = { onSelect() {}, onMove() {}, onResize() {} };
+let handlers = { onSelect() {}, onMove() {}, onResize() {}, onResizeLeft() {} };
 export function setRenderHandlers(h) { handlers = { ...handlers, ...h }; }
 
 const TYPE_CLASS_NAMES = new Set([
@@ -37,6 +37,10 @@ export function renderAll() {
 function formatTripLabel(t) {
   if (LABEL_ONLY_TYPES.has(t.type)) {
     const label = t.label || t.type;
+    if (t.hoursPerDay > 0) {
+      const ch = t.days * t.hoursPerDay;
+      return t.days === 1 ? `${label} ${fmtCH(ch)}` : `${label} ${t.days}d · ${fmtCH(ch)}`;
+    }
     return t.days === 1 ? label : `${label} ${t.days}d`;
   }
 
@@ -73,9 +77,11 @@ function renderTrip(t) {
   el.className = 'trip' + typeClass + (t.id === getSelectedId() ? ' selected' : '');
   if (OVERLAY_TYPES.has(t.type)) el.style.color = t.color;
   else el.style.background = t.color;
+  const posRight = getCellPos(t.pilot, t.day + t.days - 1);
+  if (!posRight) return; // trip spans past the grid boundary — skip render (matches the `pos` guard above)
   el.style.left = pos.left + 'px';
   el.style.top = (pos.top + (pos.height - BAR_H) / 2) + 'px';
-  el.style.width = (t.days * pos.width - 2) + 'px';
+  el.style.width = (posRight.left + posRight.width - pos.left - 2) + 'px';
   if (!OVERLAY_TYPES.has(t.type)) {
     const lbl = document.createElement('span');
     lbl.className = 'trip-label';
@@ -96,12 +102,16 @@ function renderTrip(t) {
     }
   }
 
+  const handleLeft = document.createElement('div');
+  handleLeft.className = 'resize-handle-left';
+  el.appendChild(handleLeft);
+
   const handle = document.createElement('div');
   handle.className = 'resize-handle';
   el.appendChild(handle);
 
   el.addEventListener('mousedown', e => {
-    if (e.target === handle) return;
+    if (e.target === handle || e.target === handleLeft) return;
     e.preventDefault();
     handlers.onSelect(t.id);
     handlers.onMove(t.id, e);
@@ -112,6 +122,13 @@ function renderTrip(t) {
     e.stopPropagation();
     handlers.onSelect(t.id);
     handlers.onResize(t.id, e);
+  });
+
+  handleLeft.addEventListener('mousedown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    handlers.onSelect(t.id);
+    handlers.onResizeLeft(t.id, e);
   });
 
   getTripLayer().appendChild(el);
