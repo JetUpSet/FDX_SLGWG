@@ -197,29 +197,64 @@
     );
     background-size: 8px 8px;
   }
-  /* Trip Bank — configurable, draggable both ways */
+  /* Trip Bank — floating, movable/resizable window */
   .bank {
+    position: fixed; z-index: 61; top: -9999px; left: -9999px; /* off-screen until JS positions it */
+    width: 680px; min-width: 280px; max-width: 95vw; max-height: 82vh;
+    display: flex; flex-direction: column;
     background: white; border: 1px solid #e5e7eb; border-radius: 8px;
-    padding: 14px 18px; margin-top: 14px; margin-bottom: 90px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 10px 34px rgba(0,0,0,0.20);
     transition: box-shadow 0.15s, border-color 0.15s;
+    overflow: hidden;
   }
+  .bank.hidden { display: none; }
   .bank.drop-active {
     border-color: #4f46e5;
-    box-shadow: 0 0 0 2px rgba(79,70,229,0.25);
+    box-shadow: 0 0 0 2px rgba(79,70,229,0.25), 0 10px 34px rgba(0,0,0,0.20);
   }
-  .bank-head {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    margin-bottom: 12px;
+  .bank-titlebar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 12px; cursor: move; user-select: none;
+    background: #4f46e5; color: white; flex: none;
   }
   .bank-title {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
-    color: #6b7280; font-weight: 600;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
   }
+  .bank-window-controls { display: flex; gap: 4px; }
+  .bank-win-btn {
+    width: 22px; height: 22px; padding: 0; border: none; border-radius: 4px;
+    background: rgba(255,255,255,0.18); color: white; cursor: pointer;
+    font-size: 12px; line-height: 1;
+  }
+  .bank-win-btn:hover { background: rgba(255,255,255,0.34); }
+  .bank-body {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 14px 18px; overflow: auto; flex: 1; min-height: 0;
+  }
+  .bank.collapsed .bank-body,
+  .bank.collapsed .bank-resize { display: none; }
+  .bank-resize {
+    position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, #cbd5e1 50%);
+  }
+  .bank-toggle-btn {
+    border: 1px solid #c7d2fe; background: #eef2ff; color: #4338ca;
+    border-radius: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .bank-toggle-btn:hover { background: #e0e7ff; }
+  .bank-toggle-btn.is-open { background: #4f46e5; border-color: #4f46e5; color: white; }
   .bank-config {
-    display: flex; align-items: center; flex-wrap: wrap;
+    display: flex; flex-direction: column; gap: 8px;
     flex: 1; min-width: 0;
   }
+  .bank-row { display: flex; align-items: flex-start; gap: 10px; }
+  .bank-row-label {
+    font-size: 8px; letter-spacing: 0.08em; color: #9ca3af; font-weight: 700;
+    text-transform: uppercase; min-width: 52px; padding-top: 6px; flex: none;
+  }
+  .bank-cols { display: flex; flex-wrap: wrap; align-items: center; }
   .bank-col {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 0 12px;

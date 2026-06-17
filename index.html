@@ -44,6 +44,8 @@
   <div class="divider-v"></div>
   <button class="scenario-btn" id="scenarioBtn">Scenario</button>
   <button class="annotate-btn" id="annotateBtn">Annotate</button>
+  <div class="divider-v"></div>
+  <button class="bank-toggle-btn is-open" id="bankToggleBtn">Trip Bank</button>
 </div>
 
 <div class="scenario" id="scenario">
@@ -67,12 +69,19 @@
 </div>
 
 <div class="bank" id="tripBank">
-  <div class="bank-head">
+  <div class="bank-titlebar" id="bankTitlebar">
     <span class="bank-title">Trip Bank</span>
+    <div class="bank-window-controls">
+      <button class="bank-win-btn" id="bankCollapseBtn" title="Collapse" aria-label="Collapse">▾</button>
+      <button class="bank-win-btn" id="bankCloseBtn" title="Close" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <div class="bank-body" id="bankBody">
     <div class="bank-config" id="bankConfig"></div>
+    <div class="bank-bars" id="bankBars"></div>
     <button class="bank-clear-btn" id="bankClearBtn">Clear bank</button>
   </div>
-  <div class="bank-bars" id="bankBars"></div>
+  <div class="bank-resize" id="bankResize" aria-hidden="true"></div>
 </div>
 
 <div class="toolbar" id="toolbar">

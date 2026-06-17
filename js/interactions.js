@@ -62,7 +62,7 @@ export function startMove(id, ev) {
       if (!snapped) pushHistory();
       removeTrip(trip.id);
       addBankTrip({
-        type: trip.type, label: trip.label, days: trip.days,
+        type: trip.type, label: trip.label, subType: trip.subType, days: trip.days,
         hoursPerDay: trip.hoursPerDay, color: trip.color, dh: trip.dh,
       });
       setSelectedId(null);

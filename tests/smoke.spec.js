@@ -256,3 +256,76 @@ test('left-edge resize moves the start day and keeps the right edge pinned', asy
   expect(Math.abs((afterBox.x + afterBox.width) - rightBefore)).toBeLessThan(2);
   expect(afterBox.x).toBeLessThan(beforeBox.x);
 });
+
+test('a reserve survives the grid -> bank round-trip with its subtype', async ({ page }) => {
+  // Drop an RA reserve on the grid.
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'reserve', subType: 'RA', days: 1, hoursPerDay: 4.75, color: '#0d9488'
+  }, 1, 5);
+  await expect(page.locator('.trip.reserve', { hasText: 'RA' })).toBeVisible();
+
+  // Drag it from the grid back into the bank (un-assign) via synthetic mouse events.
+  await page.evaluate(() => {
+    const trip = document.querySelector('.trip-layer .trip.reserve');
+    const bank = document.getElementById('tripBank');
+    const tr = trip.getBoundingClientRect(), br = bank.getBoundingClientRect();
+    const fire = (el, t, x, y) => el.dispatchEvent(new MouseEvent(t, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(trip, 'mousedown', tr.left + tr.width / 2, tr.top + tr.height / 2);
+    fire(window, 'mousemove', br.left + br.width / 2, br.top + br.height / 2);
+    fire(window, 'mouseup', br.left + br.width / 2, br.top + br.height / 2);
+  });
+
+  // The bank chip shows the subtype, and its drag payload carries it.
+  const chip = page.locator('.bank-item').first();
+  await expect(chip).toContainText('RA');
+  const payload = await chip.evaluate(el => {
+    const dt = new DataTransfer();
+    el.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
+    return dt.getData('text/plain');
+  });
+  expect(JSON.parse(payload).subType).toBe('RA');
+});
+
+test('the bank stages reserve bars from the RA/RB/R24 counters', async ({ page }) => {
+  const raInput = page.locator('.bank-col')
+    .filter({ has: page.locator('.bank-col-label', { hasText: /^RA$/ }) })
+    .locator('.bank-col-count');
+  await raInput.fill('2');
+  await raInput.blur();
+  await expect(page.locator('.bank-item', { hasText: 'RA' })).toHaveCount(2);
+});
+
+test('the trip bank is a floating panel that can be toggled, collapsed, and moved', async ({ page }) => {
+  const bank = page.locator('#tripBank');
+  await expect(bank).toHaveCSS('position', 'fixed');
+
+  // Toolbar toggle hides then shows it.
+  await page.locator('#bankToggleBtn').click();
+  await expect(bank).toBeHidden();
+  await page.locator('#bankToggleBtn').click();
+  await expect(bank).toBeVisible();
+
+  // Collapse hides the body but keeps the title bar.
+  await page.locator('#bankCollapseBtn').click();
+  await expect(page.locator('#bankBody')).toBeHidden();
+  await expect(page.locator('#bankTitlebar')).toBeVisible();
+  await page.locator('#bankCollapseBtn').click();
+  await expect(page.locator('#bankBody')).toBeVisible();
+
+  // Dragging the title bar changes the panel's position.
+  const before = await bank.evaluate(el => el.style.left + '|' + el.style.top);
+  await page.evaluate(() => {
+    const tb = document.getElementById('bankTitlebar');
+    const r = tb.getBoundingClientRect();
+    const fire = (el, t, x, y) => el.dispatchEvent(new MouseEvent(t, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(tb, 'mousedown', r.left + 30, r.top + 10);
+    fire(window, 'mousemove', r.left + 30 - 100, r.top + 10 - 50);
+    fire(window, 'mouseup', r.left + 30 - 100, r.top + 10 - 50);
+  });
+  const after = await bank.evaluate(el => el.style.left + '|' + el.style.top);
+  expect(after).not.toBe(before);
+});
