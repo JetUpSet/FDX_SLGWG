@@ -158,10 +158,14 @@ function buildBankItem(t) {
 
   const label = document.createElement('span');
   label.className = 'bank-item-label';
-  // Reserves show the bare subtype (e.g. 'RA') to match the grid chip style.
+  // Reserves show the bare subtype (e.g. 'RA'); trips show their CURRENT day count
+  // (deriving from t.days, not a stale stored label, so a resized-then-returned trip
+  // reads correctly). Other types (leave/absence/etc.) keep their abbreviation label.
   label.textContent = t.type === 'reserve' && t.subType
     ? t.subType
-    : (t.label || (t.days === 1 ? '1-Day' : `${t.days}-Day`));
+    : t.type === 'trip'
+      ? (t.days === 1 ? '1-Day' : `${t.days}-Day`)
+      : (t.label || (t.days === 1 ? '1-Day' : `${t.days}-Day`));
   item.appendChild(label);
 
   const remove = document.createElement('button');
