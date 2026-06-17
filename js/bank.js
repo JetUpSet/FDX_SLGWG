@@ -2,7 +2,7 @@
 // trip length; each count IS the number of that trip staged in the pool, so
 // raising/lowering it adds or removes bars live. Bars drag onto the grid to
 // assign, and grid bars can be dragged back down to un-assign.
-import { TRIP_TEMPLATES, CH_PER_DAY } from './config.js';
+import { TRIP_TEMPLATES, RESERVE_TEMPLATES, CH_PER_DAY } from './config.js';
 import {
   getBankTrips, addBankTrip, removeBankTrip, setBankTrips, pushHistory,
 } from './store.js';
@@ -10,7 +10,32 @@ import {
 const bankEl = document.getElementById('tripBank');
 const bankBars = document.getElementById('bankBars');
 
-let countInputs = []; // [{ tmpl, input }]
+let countInputs = []; // [{ desc, input }]
+
+// A counter descriptor knows how to label its column, match staged bars of its
+// kind, and make a new one. Trips match by day-length; reserves by subtype.
+function tripDescriptor(tmpl) {
+  return {
+    label: `${tmpl.days}-Day`,
+    color: tmpl.color,
+    match: t => t.type === 'trip' && t.days === tmpl.days,
+    make: () => ({
+      type: 'trip', label: `${tmpl.days}-Day`,
+      days: tmpl.days, hoursPerDay: CH_PER_DAY, color: tmpl.color,
+    }),
+  };
+}
+function reserveDescriptor(tmpl) {
+  return {
+    label: tmpl.subType,
+    color: tmpl.color,
+    match: t => t.type === 'reserve' && t.subType === tmpl.subType,
+    make: () => ({
+      type: 'reserve', subType: tmpl.subType, label: tmpl.label,
+      days: 1, hoursPerDay: tmpl.hoursPerDay, color: tmpl.color,
+    }),
+  };
+}
 
 export function initBank() {
   buildConfig();
@@ -26,77 +51,86 @@ export function initBank() {
   renderBank();
 }
 
-// Build one labeled count column per trip length in TRIP_TEMPLATES.
+// Build labeled count rows: one per trip length, one per reserve subtype.
 function buildConfig() {
   const cfg = document.getElementById('bankConfig');
   if (!cfg) return;
   cfg.innerHTML = '';
   countInputs = [];
-  TRIP_TEMPLATES.forEach(tmpl => {
+  addCountRow(cfg, 'Trips', TRIP_TEMPLATES.map(tripDescriptor));
+  addCountRow(cfg, 'Reserve', RESERVE_TEMPLATES.map(reserveDescriptor));
+}
+
+function addCountRow(cfg, title, descriptors) {
+  const row = document.createElement('div');
+  row.className = 'bank-row';
+
+  const heading = document.createElement('div');
+  heading.className = 'bank-row-label';
+  heading.textContent = title;
+  row.appendChild(heading);
+
+  const cols = document.createElement('div');
+  cols.className = 'bank-cols';
+  descriptors.forEach(desc => {
     const col = document.createElement('div');
     col.className = 'bank-col';
 
     const dot = document.createElement('span');
     dot.className = 'bank-col-dot';
-    dot.style.background = tmpl.color;
+    dot.style.background = desc.color;
 
     const name = document.createElement('span');
     name.className = 'bank-col-label';
-    name.textContent = `${tmpl.days}-Day`;
+    name.textContent = desc.label;
 
     const input = document.createElement('input');
     input.className = 'bank-col-count';
     input.type = 'number';
     input.min = '0';
     input.value = '0';
-    input.addEventListener('change', () => applyCount(tmpl, input));
+    input.addEventListener('change', () => applyCount(desc, input));
 
     col.appendChild(dot);
     col.appendChild(name);
     col.appendChild(input);
-    cfg.appendChild(col);
-    countInputs.push({ tmpl, input });
+    cols.appendChild(col);
+    countInputs.push({ desc, input });
   });
+  row.appendChild(cols);
+  cfg.appendChild(row);
 }
 
-// Count of staged trips of a given length (only the generic 'trip' type).
-function poolCountFor(days) {
-  return getBankTrips().filter(t => t.type === 'trip' && t.days === days).length;
+// Count of staged bars matching a descriptor.
+function poolCountFor(desc) {
+  return getBankTrips().filter(desc.match).length;
 }
 
-// Reconcile the pool for one trip length to match the input value.
-function applyCount(tmpl, input) {
+// Reconcile the staged count for one descriptor to match the input value.
+function applyCount(desc, input) {
   let target = parseInt(input.value, 10);
   if (!Number.isFinite(target) || target < 0) target = 0;
   input.value = target;
 
-  const current = poolCountFor(tmpl.days);
+  const current = poolCountFor(desc);
   if (target === current) return;
 
   pushHistory();
   if (target > current) {
-    for (let i = 0; i < target - current; i++) {
-      addBankTrip({
-        type: 'trip',
-        label: `${tmpl.days}-Day`,
-        days: tmpl.days,
-        hoursPerDay: CH_PER_DAY,
-        color: tmpl.color,
-      });
-    }
+    for (let i = 0; i < target - current; i++) addBankTrip(desc.make());
   } else {
-    // Remove the most recently staged bars of this length.
-    const matches = getBankTrips().filter(t => t.type === 'trip' && t.days === tmpl.days);
+    // Remove the most recently staged matching bars.
+    const matches = getBankTrips().filter(desc.match);
     matches.slice(target).forEach(t => removeBankTrip(t.id));
   }
   renderBank();
 }
 
-// Reflect the live pool counts back into the header inputs.
+// Reflect the live staged counts back into the header inputs.
 function syncInputs() {
-  countInputs.forEach(({ tmpl, input }) => {
+  countInputs.forEach(({ desc, input }) => {
     if (input === document.activeElement) return; // don't fight the user mid-edit
-    input.value = poolCountFor(tmpl.days);
+    input.value = poolCountFor(desc);
   });
 }
 

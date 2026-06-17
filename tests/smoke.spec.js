@@ -287,3 +287,12 @@ test('a reserve survives the grid -> bank round-trip with its subtype', async ({
   });
   expect(JSON.parse(payload).subType).toBe('RA');
 });
+
+test('the bank stages reserve bars from the RA/RB/R24 counters', async ({ page }) => {
+  const raInput = page.locator('.bank-col')
+    .filter({ has: page.locator('.bank-col-label', { hasText: /^RA$/ }) })
+    .locator('.bank-col-count');
+  await raInput.fill('2');
+  await raInput.blur();
+  await expect(page.locator('.bank-item', { hasText: 'RA' })).toHaveCount(2);
+});

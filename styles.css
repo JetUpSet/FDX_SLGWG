@@ -217,9 +217,15 @@
     color: #6b7280; font-weight: 600;
   }
   .bank-config {
-    display: flex; align-items: center; flex-wrap: wrap;
+    display: flex; flex-direction: column; gap: 8px;
     flex: 1; min-width: 0;
   }
+  .bank-row { display: flex; align-items: flex-start; gap: 10px; }
+  .bank-row-label {
+    font-size: 8px; letter-spacing: 0.08em; color: #9ca3af; font-weight: 700;
+    text-transform: uppercase; min-width: 52px; padding-top: 6px; flex: none;
+  }
+  .bank-cols { display: flex; flex-wrap: wrap; align-items: center; }
   .bank-col {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 0 12px;
