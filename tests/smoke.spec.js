@@ -329,3 +329,27 @@ test('the trip bank is a floating panel that can be toggled, collapsed, and move
   const after = await bank.evaluate(el => el.style.left + '|' + el.style.top);
   expect(after).not.toBe(before);
 });
+
+test('a resized trip shows its new length when dragged back to the bank', async ({ page }) => {
+  // A 1-Day trip staged from the bank carries the stored label '1-Day'. After it is
+  // dropped on the grid and resized to 3 days, days=3 but that stored label is stale.
+  await dropPayloadOnCell(page, {
+    kind: 'new', type: 'trip', label: '1-Day', days: 3, hoursPerDay: 6, color: '#0891b2'
+  }, 1, 5);
+
+  // Drag it from the grid back into the bank.
+  await page.evaluate(() => {
+    const trip = document.querySelector('.trip-layer .trip');
+    const bank = document.getElementById('tripBank');
+    const tr = trip.getBoundingClientRect(), br = bank.getBoundingClientRect();
+    const fire = (el, t, x, y) => el.dispatchEvent(new MouseEvent(t, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(trip, 'mousedown', tr.left + tr.width / 2, tr.top + tr.height / 2);
+    fire(window, 'mousemove', br.left + br.width / 2, br.top + br.height / 2);
+    fire(window, 'mouseup', br.left + br.width / 2, br.top + br.height / 2);
+  });
+
+  // The bank chip reflects the CURRENT length (3-Day), not the stale '1-Day'.
+  await expect(page.locator('.bank-item .bank-item-label')).toHaveText('3-Day');
+});
