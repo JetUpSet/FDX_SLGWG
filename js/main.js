@@ -4,6 +4,7 @@ import { initToolbar, updateToolbar, setToolbarHandlers } from './toolbar.js';
 import { selectTrip, startMove, startResize, startResizeLeft, deleteSelected, initInteractions } from './interactions.js';
 import { initPalette } from './palette.js';
 import { initBank } from './bank.js';
+import { initBankWindow } from './bankWindow.js';
 import { initAnnotate } from './annotate.js';
 import { initRandomizer } from './randomizer.js';
 import { initFeasibility, handleFeasibilitySenClick, exitFeasibility } from './feasibility.js';
@@ -14,6 +15,7 @@ import { getTrips, setTrips, getPilotCount, setPilotCount, setSelectedId } from 
 
   // -------- Trip Bank --------
   initBank();
+  initBankWindow();
 
   // -------- Annotations --------
   initAnnotate();

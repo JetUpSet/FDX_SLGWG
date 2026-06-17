@@ -296,3 +296,36 @@ test('the bank stages reserve bars from the RA/RB/R24 counters', async ({ page }
   await raInput.blur();
   await expect(page.locator('.bank-item', { hasText: 'RA' })).toHaveCount(2);
 });
+
+test('the trip bank is a floating panel that can be toggled, collapsed, and moved', async ({ page }) => {
+  const bank = page.locator('#tripBank');
+  await expect(bank).toHaveCSS('position', 'fixed');
+
+  // Toolbar toggle hides then shows it.
+  await page.locator('#bankToggleBtn').click();
+  await expect(bank).toBeHidden();
+  await page.locator('#bankToggleBtn').click();
+  await expect(bank).toBeVisible();
+
+  // Collapse hides the body but keeps the title bar.
+  await page.locator('#bankCollapseBtn').click();
+  await expect(page.locator('#bankBody')).toBeHidden();
+  await expect(page.locator('#bankTitlebar')).toBeVisible();
+  await page.locator('#bankCollapseBtn').click();
+  await expect(page.locator('#bankBody')).toBeVisible();
+
+  // Dragging the title bar changes the panel's position.
+  const before = await bank.evaluate(el => el.style.left + '|' + el.style.top);
+  await page.evaluate(() => {
+    const tb = document.getElementById('bankTitlebar');
+    const r = tb.getBoundingClientRect();
+    const fire = (el, t, x, y) => el.dispatchEvent(new MouseEvent(t, {
+      bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, button: 0,
+    }));
+    fire(tb, 'mousedown', r.left + 30, r.top + 10);
+    fire(window, 'mousemove', r.left + 30 - 100, r.top + 10 - 50);
+    fire(window, 'mouseup', r.left + 30 - 100, r.top + 10 - 50);
+  });
+  const after = await bank.evaluate(el => el.style.left + '|' + el.style.top);
+  expect(after).not.toBe(before);
+});
